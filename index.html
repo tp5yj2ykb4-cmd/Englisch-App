@@ -6,6 +6,8 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#fafaf9">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" type="image/png" href="icon.png">
 <title>English Trainer</title>
 <style>
 :root{
@@ -570,7 +572,7 @@ const SPEAK_SEED=[
 
 /* ================= Zustand ================= */
 let S={cards:{},extra:[],chat:[],stats:{streak:0,reviews:0,correct:0,lastDay:null}};
-let storageOk=true, apiKey="", provider="gemini";
+let storageOk=true, apiKey="", provider="gemini", gModel="";
 
 function loadState(){
   try{
@@ -578,6 +580,7 @@ function loadState(){
     if(raw){const o=JSON.parse(raw); S=Object.assign(S,o);}
     apiKey=localStorage.getItem(KEY+":key")||"";
     provider=localStorage.getItem(KEY+":prov")||(apiKey?"anthropic":"gemini");
+    gModel=localStorage.getItem(KEY+":gmodel")||"";
     localStorage.setItem(KEY+":probe","1");
   }catch(e){
     storageOk=false;
@@ -629,24 +632,47 @@ function headline(){
 async function askClaude(messages,system,maxTokens){
   if(!apiKey) throw new Error("Kein API-Key hinterlegt (Sicherung → Key)");
   if(provider==="gemini"){
-    const res=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",{
-      method:"POST",
-      headers:{"Content-Type":"application/json","x-goog-api-key":apiKey},
-      body:JSON.stringify({
-        system_instruction:{parts:[{text:system}]},
-        contents:messages.map(m=>({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]})),
-        generationConfig:{maxOutputTokens:Math.max(400,maxTokens||800),thinkingConfig:{thinkingBudget:0}}
-      })});
-    if(!res.ok){
-      let msg="Server antwortet mit "+res.status;
-      try{const eb=await res.json();if(eb&&eb.error&&eb.error.message)msg=eb.error.message;}catch(_e){}
-      throw new Error(msg);
+    const payload=JSON.stringify({
+      system_instruction:{parts:[{text:system}]},
+      contents:messages.map(m=>({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]})),
+      generationConfig:{maxOutputTokens:Math.max(1024,maxTokens||800)}
+    });
+    const tryModel=async(model)=>{
+      const res=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+model+":generateContent",
+        {method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":apiKey},body:payload});
+      if(!res.ok){
+        let msg="Server antwortet mit "+res.status;
+        try{const eb=await res.json();if(eb&&eb.error&&eb.error.message)msg=eb.error.message;}catch(_e){}
+        const err=new Error(msg);err.code=res.status;throw err;
+      }
+      const d=await res.json();
+      const c=d.candidates&&d.candidates[0];
+      const txt=((c&&c.content&&c.content.parts)||[]).map(p=>p.text||"").join("\n");
+      if(!txt) throw new Error("leere Antwort (Tageslimit erreicht?)");
+      return txt;
+    };
+    const remember=(m)=>{gModel=m;try{localStorage.setItem(KEY+":gmodel",m);}catch(_e){}};
+    const modelGone=(e)=>e.code===404||/not (available|found|supported)|deprecated|no longer|does not exist/i.test(e.message||"");
+    const cands=[...new Set([gModel,"gemini-flash-latest","gemini-3.7-flash","gemini-3.6-flash",
+      "gemini-flash-lite-latest","gemini-2.5-flash-lite","gemini-2.5-flash"].filter(Boolean))];
+    let lastErr=null;
+    for(const m of cands){
+      try{const t=await tryModel(m);remember(m);return t;}
+      catch(e){if(modelGone(e)){lastErr=e;continue;}throw e;}
     }
-    const d=await res.json();
-    const c=d.candidates&&d.candidates[0];
-    const txt=((c&&c.content&&c.content.parts)||[]).map(p=>p.text||"").join("\n");
-    if(!txt) throw new Error("leere Antwort (Tageslimit erreicht?)");
-    return txt;
+    // Letzter Ausweg: Google nach der aktuellen Modellliste fragen
+    try{
+      const r=await fetch("https://generativelanguage.googleapis.com/v1beta/models?pageSize=100",
+        {headers:{"x-goog-api-key":apiKey}});
+      const d=await r.json();
+      const pick=((d.models)||[])
+        .filter(m=>(m.supportedGenerationMethods||[]).includes("generateContent"))
+        .map(m=>String(m.name||"").replace("models/",""))
+        .filter(n=>n.includes("flash")&&!/image|live|tts|audio|embed|veo|imagen|thinking/.test(n))
+        .sort().reverse()[0];
+      if(pick){const t=await tryModel(pick);remember(pick);return t;}
+    }catch(_e){}
+    throw lastErr||new Error("kein Gemini-Modell verfügbar");
   }
   const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",
     headers:{"Content-Type":"application/json","x-api-key":apiKey,
@@ -930,7 +956,7 @@ function doImport(){
 function provChanged(){
   provider=$("provbox").value;
   try{localStorage.setItem(KEY+":prov",provider);}catch(e){}
-  $("keybox").placeholder=provider==="gemini"?"AIza…":"sk-ant-…";
+  $("keybox").placeholder=provider==="gemini"?"AQ.… oder AIza…":"sk-ant-…";
   $("keyhint").textContent=provider==="gemini"
     ?"Kostenlosen Key holen: aistudio.google.com → „Get API key“. Ohne Kreditkarte. Hinweis: Im Gratis-Tarif darf Google Eingaben zum Verbessern seiner Modelle nutzen."
     :"Key holen: console.anthropic.com → API Keys. Braucht Guthaben, kostet Centbeträge pro Nutzung.";
@@ -944,7 +970,7 @@ async function saveKey(){
   $("notice").textContent="Key gespeichert — teste …";
   try{
     await askClaude([{role:"user",content:"OK?"}],"Antworte nur mit OK.",10);
-    $("notice").textContent="✓ Key funktioniert — Chat, KI-Grammatik und neue Wörter sind frei.";
+    $("notice").textContent="✓ Key funktioniert"+(provider==="gemini"&&gModel?" (Modell: "+gModel+")":"")+" — Chat, KI-Grammatik und neue Wörter sind frei.";
   }catch(e){$("notice").textContent="Key gespeichert, aber Test fehlgeschlagen: "+e.message;}
 }
 
