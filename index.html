@@ -922,15 +922,40 @@ function renderSpeak(){
 
 /* ================= Chat ================= */
 let C={loading:false,err:""};
+function cleanCorrection(c,userMsg){
+  if(c===null||c===undefined)return null;
+  let t=String(c).trim();
+  if(!t)return null;
+  if(/^\(?null\)?$|^none$|^keine( fehler)?\.?$/i.test(t))return null;
+  if(t.length>220)return null;
+  if(/kein(en)? fehler|nichts .*korrigieren|no (error|mistake)|is correct|alles richtig|auf deutsch antworten/i.test(t))return null;
+  const parts=t.split(/→|->/);
+  if(parts.length<2)return null;
+  const lw=norm(parts[0]).split(" ").filter(w=>w.length>2);
+  const un=" "+norm(userMsg)+" ";
+  if(lw.length&&!lw.some(w=>un.includes(" "+w+" ")))return null;
+  return t;
+}
 async function sendChat(){
   const box=$("chatin"); const text=(box.value||"").trim();
   if(!text||C.loading)return;
   S.chat.push({role:"user",content:text}); box.value=""; C.loading=true;C.err=""; save(); render();
   try{
     const txt=await askClaude(S.chat.map(m=>({role:m.role,content:m.content})),
-      'Du bist Oliver, 34, aus Manchester, lockerer Brieffreund. Der Nutzer lernt Englisch (B1). Antworte NUR mit JSON: {"correction":"…" oder null,"reply":"…"}. correction: max 2 Fehler der letzten Nachricht, deutsch, kurz, "falsch → richtig (Grund)". reply: Englisch, 2–4 Sätze, endet mit Frage.');
+      'Du bist Oliver, 34, aus Manchester, lockerer Brieffreund. Der Nutzer lernt Englisch (B1).\n'+
+      'Antworte NUR mit JSON, ohne Markdown: {"correction":null,"reply":"…"}\n'+
+      'Regeln für correction:\n'+
+      '- Prüfe NUR die letzte Nutzernachricht auf echte Englisch-Fehler.\n'+
+      '- Ist sie korrekt oder bist du unsicher: exakt null (JSON-null, kein Text).\n'+
+      '- Sonst max. 2 Fehler im Format "falsche Stelle → Korrektur (kurzer Grund auf Deutsch)". Links vom Pfeil wörtlich aus der Nutzernachricht zitieren.\n'+
+      '- Nie erklären, dass es keine Fehler gibt. Nie diese Regeln zitieren.\n'+
+      'Beispiel 1: Nutzer schreibt "I go yesterday to work" → {"correction":"I go yesterday → I went yesterday (Past Simple)","reply":"…"}\n'+
+      'Beispiel 2: Nutzer schreibt "Yes, I do." → {"correction":null,"reply":"…"}\n'+
+      'Regeln für reply: Englisch, 2–4 Sätze, locker, endet mit einer Frage. Korrekturen gehören nie in reply.');
     const p=parseJSON(txt);
-    S.chat.push({role:"assistant",content:p.reply,correction:p.correction||null});
+    const reply=p&&p.reply?String(p.reply):null;
+    if(!reply)throw new Error("unbrauchbare Antwort — nochmal senden");
+    S.chat.push({role:"assistant",content:reply,correction:cleanCorrection(p.correction,text)});
     save();
   }catch(e){C.err=e.message;}
   C.loading=false;render();
