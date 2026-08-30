@@ -1,0 +1,956 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#fafaf9">
+<title>English Trainer</title>
+<style>
+:root{
+  --bg:#fafaf9; --panel:#ffffff; --panel2:#e7e5e4; --line:#d6d3d1;
+  --txt:#292524; --dim:#57534e; --faint:#78716c;
+  --amber:#f59e0b; --amber2:#b45309; --green:#059669; --red:#e11d48;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+html,body{margin:0; height:100%; background:var(--bg); color:var(--txt);
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+#app{display:flex; flex-direction:column; height:100%; max-width:520px; margin:0 auto}
+header{display:flex; justify-content:space-between; align-items:center;
+  padding:14px 16px 10px; border-bottom:1px solid var(--panel2)}
+h1{font-family:Georgia,'Times New Roman',serif; font-size:20px; margin:0; color:#1c1917}
+.sub{font-family:ui-monospace,Menlo,monospace; font-size:10px; letter-spacing:.12em; color:var(--faint); margin-top:3px}
+.pill{display:flex; align-items:center; gap:6px; background:var(--panel); border:1px solid var(--panel2); border-radius:999px;
+  padding:6px 12px; font-family:ui-monospace,monospace; font-size:12px}
+main{flex:1; overflow-y:auto; padding:18px 16px 24px; -webkit-overflow-scrolling:touch}
+nav{display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--panel2);
+  padding-bottom:env(safe-area-inset-bottom)}
+nav button{background:none; border:none; color:var(--faint); padding:10px 0 12px;
+  font-family:ui-monospace,monospace; font-size:10px; letter-spacing:.06em; cursor:pointer}
+nav button.on{color:var(--amber2)}
+nav button .ic{font-size:18px; display:block; margin-bottom:3px}
+.btn{display:block; width:100%; border:none; border-radius:14px; padding:14px;
+  font-size:15px; font-weight:600; cursor:pointer; margin-top:10px}
+.btn.primary{background:var(--amber); color:#1c1917}
+.btn.ghost{background:var(--panel2); color:var(--txt)}
+.btn.good{background:var(--green); color:#ffffff}
+.btn.bad{background:var(--panel2); color:var(--red); border:1px solid var(--line)}
+.btn:disabled{opacity:.4}
+.row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+.chips{display:flex; gap:8px; overflow-x:auto; padding-bottom:6px}
+.chip{flex:0 0 auto; border:none; border-radius:999px; padding:7px 13px; cursor:pointer;
+  font-family:ui-monospace,monospace; font-size:12px; background:var(--panel2); color:var(--dim)}
+.chip.on{background:var(--amber); color:#1c1917}
+.rail{display:flex; align-items:flex-end; gap:5px; margin:14px 0 4px}
+.drawer{width:30px}
+.drawer .box{height:40px; border:1px solid var(--line); border-radius:6px;
+  background:var(--panel); position:relative; overflow:hidden}
+.drawer .fill{position:absolute; left:0; right:0; bottom:0; background:rgba(245,158,11,.5); transition:height .4s}
+.drawer .n{display:block; text-align:center; font-family:ui-monospace,monospace;
+  font-size:10px; color:var(--faint); margin-top:3px}
+.drawer.new .box{border-style:dashed; background:transparent}
+.sep{width:1px; height:40px; background:var(--panel2); margin:0 4px}
+.meta{font-family:ui-monospace,monospace; font-size:11px; color:var(--faint); margin:12px 0 8px}
+.flip{perspective:1200px; height:230px; margin-top:6px}
+.flip .inner{position:relative; width:100%; height:100%; transition:transform .45s; transform-style:preserve-3d; cursor:pointer}
+.flip.turned .inner{transform:rotateY(180deg)}
+.face{position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  border-radius:18px; border:1px solid var(--line); background:var(--panel); padding:22px;
+  box-shadow:0 1px 3px rgba(28,25,23,.08)}
+.face.back{transform:rotateY(180deg); border-color:rgba(245,158,11,.5)}
+.word{font-family:Georgia,serif; font-size:34px; text-align:center; line-height:1.2; color:#1c1917}
+.face.back .word{font-size:28px; color:var(--amber2)}
+.hint{position:absolute; bottom:12px; font-family:ui-monospace,monospace; font-size:10px; color:var(--faint)}
+.spk{margin-top:16px; border:none; background:var(--panel2); color:var(--amber2);
+  border-radius:999px; width:46px; height:46px; font-size:20px; cursor:pointer}
+.card{background:var(--panel); border:1px solid var(--panel2); border-radius:16px; padding:16px; margin-top:12px; box-shadow:0 1px 2px rgba(28,25,23,.06)}
+.card h3{font-family:Georgia,serif; font-weight:normal; font-size:22px; margin:0; color:#1c1917}
+input[type=text], select, textarea{width:100%; background:var(--bg); border:1px solid var(--line);
+  border-radius:10px; padding:10px 12px; color:var(--txt); font-size:15px; margin-top:8px}
+input.ok{border-color:var(--green)} input.no{border-color:var(--red)}
+.why{font-size:12px; color:var(--dim); margin:6px 0 0}
+.why b{color:var(--green); font-weight:600}
+.rules{border:1px solid rgba(245,158,11,.4); border-radius:14px; background:var(--panel); padding:14px 16px; margin-top:12px}
+.rules div{display:flex; gap:10px; font-size:14px; color:var(--dim); margin:6px 0}
+.rules span{color:var(--amber2); font-family:ui-monospace,monospace}
+.list button{display:flex; width:100%; justify-content:space-between; align-items:center;
+  background:var(--panel); border:1px solid var(--panel2); border-radius:14px;
+  padding:14px 16px; margin-top:10px; color:var(--txt); cursor:pointer}
+.list .t{font-family:Georgia,serif; font-size:17px}
+.banner{background:#ffe4e6; color:#9f1239; font-size:12px; padding:8px 16px; border:none; width:100%; text-align:left; cursor:pointer}
+.msg{border-radius:16px; padding:11px 14px; margin-top:10px; max-width:85%; font-size:15px; line-height:1.4}
+.msg.me{background:var(--amber); color:#1c1917; margin-left:auto; border-bottom-right-radius:4px}
+.msg.ol{background:var(--panel); border:1px solid var(--panel2); border-bottom-left-radius:4px}
+.corr{border-left:2px solid var(--red); background:var(--panel); font-size:12px;
+  color:var(--dim); padding:7px 10px; border-radius:10px; margin-top:10px; max-width:85%}
+.target{font-family:Georgia,serif; font-size:23px; line-height:1.4; color:#1c1917}
+.target .hit{color:var(--green)} .target .miss{color:var(--red); text-decoration:underline}
+.score{font-family:Georgia,serif; font-size:40px; color:var(--amber2); text-align:center}
+.overlay{position:fixed; inset:0; background:rgba(250,250,249,.98); z-index:20; display:none;
+  flex-direction:column; padding:16px; max-width:520px; margin:0 auto}
+.overlay.show{display:flex}
+.overlay .body{flex:1; overflow-y:auto}
+.x{background:var(--panel2); border:none; color:var(--txt); border-radius:10px;
+  width:36px; height:36px; font-size:16px; cursor:pointer}
+.small{font-size:13px; color:var(--dim); margin:14px 0 4px}
+.mono{font-family:ui-monospace,monospace; font-size:10px; color:var(--dim)}
+.center{text-align:center}
+label.small{display:block}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <div><h1>English Trainer</h1><div class="sub" id="subline"></div></div>
+    <div style="display:flex; gap:8px; align-items:center">
+      <button class="x" onclick="openBackup()" title="Sicherung">&#8681;</button>
+      <div class="pill">&#128293; <span id="streak">0</span></div>
+    </div>
+  </header>
+  <button class="banner" id="banner" style="display:none" onclick="openBackup()"></button>
+  <main id="main"></main>
+  <nav>
+    <button data-tab="vocab" class="on" onclick="go('vocab')"><span class="ic">&#9634;</span>Karten</button>
+    <button data-tab="grammar" onclick="go('grammar')"><span class="ic">&#182;</span>Grammatik</button>
+    <button data-tab="speak" onclick="go('speak')"><span class="ic">&#127908;</span>Sprechen</button>
+    <button data-tab="chat" onclick="go('chat')"><span class="ic">&#9993;</span>Chat</button>
+  </nav>
+</div>
+
+<div class="overlay" id="backup">
+  <div style="display:flex; justify-content:space-between; align-items:center">
+    <h1 style="font-family:Georgia,serif">Sicherung &amp; Einstellungen</h1>
+    <button class="x" onclick="closeBackup()">&#10005;</button>
+  </div>
+  <div class="body">
+    <p class="mono" id="saveinfo" style="margin-top:10px"></p>
+    <p class="small">Kurzcode (kompatibel mit der Claude-Version):</p>
+    <textarea id="exportbox" readonly rows="4" class="mono" onclick="this.select()"></textarea>
+    <button class="btn ghost" onclick="copyExport()">In die Zwischenablage</button>
+    <p class="small">Kurzcode einspielen:</p>
+    <textarea id="importbox" rows="3" class="mono" placeholder="Code hier einfügen"></textarea>
+    <button class="btn primary" onclick="doImport()">Wiederherstellen</button>
+    <p class="small">KI-Anbieter (für Chat, KI-Grammatik und neue Wörter; der Key bleibt nur auf diesem Gerät):</p>
+    <select id="provbox" onchange="provChanged()">
+      <option value="gemini">Google Gemini — kostenlos</option>
+      <option value="anthropic">Anthropic Claude — bezahlt</option>
+    </select>
+    <p class="small" id="keyhint"></p>
+    <input type="text" id="keybox" placeholder="API-Key">
+    <button class="btn ghost" onclick="saveKey()">Key speichern &amp; testen</button>
+    <p class="mono" id="notice" style="margin-top:12px"></p>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ================= Daten ================= */
+const WORDS = `be|sein|A1
+have|haben|A1
+do|tun, machen|A1
+say|sagen|A1
+get|bekommen|A1
+make|machen, herstellen|A1
+go|gehen|A1
+know|wissen, kennen|A1
+take|nehmen|A1
+see|sehen|A1
+come|kommen|A1
+think|denken|A1
+look|schauen|A1
+want|wollen|A1
+give|geben|A1
+use|benutzen|A1
+find|finden|A1
+tell|erzählen|A1
+ask|fragen|A1
+work|arbeiten|A1
+feel|fühlen|A1
+try|versuchen|A1
+leave|verlassen|A1
+call|anrufen, nennen|A1
+need|brauchen|A1
+put|legen, stellen|A1
+mean|bedeuten|A1
+keep|behalten|A1
+let|lassen|A1
+begin|beginnen|A1
+help|helfen|A1
+talk|reden|A1
+turn|drehen, wenden|A1
+start|anfangen|A1
+show|zeigen|A1
+hear|hören|A1
+play|spielen|A1
+run|rennen, laufen|A1
+move|bewegen|A1
+live|leben, wohnen|A1
+believe|glauben|A1
+bring|bringen|A1
+happen|passieren|A1
+write|schreiben|A1
+sit|sitzen|A1
+stand|stehen|A1
+lose|verlieren|A1
+pay|bezahlen|A1
+meet|treffen|A1
+learn|lernen|A1
+change|ändern|A1
+understand|verstehen|A1
+watch|beobachten|A1
+follow|folgen|A1
+stop|anhalten, aufhören|A1
+speak|sprechen|A1
+read|lesen|A1
+grow|wachsen|A1
+open|öffnen|A1
+walk|zu Fuß gehen|A1
+win|gewinnen|A1
+buy|kaufen|A1
+send|schicken|A1
+build|bauen|A1
+stay|bleiben|A1
+fall|fallen|A1
+eat|essen|A1
+drink|trinken|A1
+sleep|schlafen|A1
+drive|fahren|A1
+wait|warten|A1
+time|Zeit|A1
+year|Jahr|A1
+people|Leute, Menschen|A1
+way|Weg, Art|A1
+day|Tag|A1
+man|Mann|A1
+thing|Ding, Sache|A1
+woman|Frau|A1
+life|Leben|A1
+child|Kind|A1
+world|Welt|A1
+school|Schule|A1
+family|Familie|A1
+group|Gruppe|A1
+country|Land|A1
+problem|Problem|A1
+hand|Hand|A1
+part|Teil|A1
+place|Ort, Platz|A1
+week|Woche|A1
+company|Firma|A1
+system|System|A1
+question|Frage|A1
+number|Zahl, Nummer|A1
+night|Nacht|A1
+point|Punkt|A1
+home|Zuhause|A1
+water|Wasser|A1
+room|Zimmer|A1
+mother|Mutter|A1
+father|Vater|A1
+money|Geld|A1
+story|Geschichte|A1
+month|Monat|A1
+book|Buch|A1
+friend|Freund|A1
+city|Stadt|A1
+name|Name|A1
+food|Essen|A1
+car|Auto|A1
+house|Haus|A1
+job|Arbeitsstelle|A1
+door|Tür|A1
+word|Wort|A1
+good|gut|A1
+new|neu|A1
+first|erste|A1
+last|letzte|A1
+long|lang|A1
+great|großartig|A1
+little|klein, wenig|A1
+own|eigen|A1
+other|andere|A1
+old|alt|A1
+right|richtig, rechts|A1
+big|groß|A1
+high|hoch|A1
+different|unterschiedlich|A1
+small|klein|A1
+large|groß|A1
+next|nächste|A1
+early|früh|A1
+young|jung|A1
+important|wichtig|A1
+few|wenige|A1
+bad|schlecht|A1
+same|gleich|A1
+happy|glücklich|A1
+easy|einfach|A1
+hard|schwer, hart|A1
+free|frei, kostenlos|A1
+sure|sicher|A1
+seem|scheinen|A2
+consider|erwägen, betrachten|A2
+remember|sich erinnern|A2
+allow|erlauben|A2
+add|hinzufügen|A2
+offer|anbieten|A2
+suggest|vorschlagen|A2
+expect|erwarten|A2
+decide|entscheiden|A2
+improve|verbessern|A2
+explain|erklären|A2
+describe|beschreiben|A2
+choose|wählen|A2
+agree|zustimmen|A2
+compare|vergleichen|A2
+prepare|vorbereiten|A2
+repeat|wiederholen|A2
+avoid|vermeiden|A2
+prefer|bevorzugen|A2
+borrow|(sich) leihen|A2
+lend|verleihen|A2
+save|sparen, retten|A2
+share|teilen|A2
+accept|akzeptieren|A2
+receive|erhalten|A2
+return|zurückkehren|A2
+arrive|ankommen|A2
+travel|reisen|A2
+order|bestellen|A2
+deliver|liefern|A2
+check|prüfen|A2
+fix|reparieren|A2
+clean|putzen|A2
+cook|kochen|A2
+meeting|Besprechung|A2
+office|Büro|A2
+customer|Kunde|A2
+price|Preis|A2
+report|Bericht|A2
+team|Team|A2
+project|Projekt|A2
+example|Beispiel|A2
+reason|Grund|A2
+result|Ergebnis|A2
+answer|Antwort|A2
+idea|Idee|A2
+chance|Chance|A2
+level|Ebene, Niveau|A2
+market|Markt|A2
+service|Dienstleistung|A2
+product|Produkt|A2
+quality|Qualität|A2
+amount|Menge, Betrag|A2
+period|Zeitraum|A2
+area|Gebiet, Bereich|A2
+health|Gesundheit|A2
+weather|Wetter|A2
+holiday|Urlaub, Feiertag|A2
+station|Bahnhof|A2
+street|Straße|A2
+bill|Rechnung|A2
+possible|möglich|A2
+difficult|schwierig|A2
+expensive|teuer|A2
+cheap|billig|A2
+quick|schnell|A2
+slow|langsam|A2
+safe|sicher|A2
+dangerous|gefährlich|A2
+similar|ähnlich|A2
+useful|nützlich|A2
+enough|genug|A2
+almost|fast|A2
+already|schon, bereits|A2
+always|immer|A2
+usually|normalerweise|A2
+often|oft|A2
+sometimes|manchmal|A2
+never|nie|A2
+maybe|vielleicht|A2
+together|zusammen|A2
+instead|stattdessen|A2
+however|jedoch|A2
+because|weil|A2
+although|obwohl|A2
+until|bis|A2
+during|während|A2
+between|zwischen|A2
+without|ohne|A2
+against|gegen|A2
+through|durch|A2
+achieve|erreichen|B1
+apply|anwenden, sich bewerben|B1
+approach|angehen, sich nähern|B1
+argue|argumentieren, streiten|B1
+assume|annehmen|B1
+attend|teilnehmen|B1
+claim|behaupten|B1
+complain|sich beschweren|B1
+confirm|bestätigen|B1
+contain|enthalten|B1
+depend|abhängen|B1
+develop|entwickeln|B1
+discuss|besprechen|B1
+encourage|ermutigen|B1
+ensure|sicherstellen|B1
+establish|gründen, etablieren|B1
+increase|erhöhen|B1
+reduce|verringern|B1
+maintain|instand halten, aufrechterhalten|B1
+manage|verwalten, schaffen|B1
+mention|erwähnen|B1
+notice|bemerken|B1
+provide|bereitstellen|B1
+recognise|erkennen|B1
+refuse|ablehnen|B1
+replace|ersetzen|B1
+require|erfordern|B1
+solve|lösen|B1
+support|unterstützen|B1
+suppose|vermuten|B1
+advantage|Vorteil|B1
+disadvantage|Nachteil|B1
+agreement|Vereinbarung|B1
+attempt|Versuch|B1
+benefit|Nutzen|B1
+budget|Budget|B1
+competition|Wettbewerb|B1
+condition|Bedingung, Zustand|B1
+decision|Entscheidung|B1
+demand|Nachfrage|B1
+effort|Anstrengung|B1
+experience|Erfahrung|B1
+failure|Misserfolg|B1
+goal|Ziel|B1
+growth|Wachstum|B1
+influence|Einfluss|B1
+issue|Angelegenheit, Problem|B1
+knowledge|Wissen|B1
+opportunity|Gelegenheit|B1
+pressure|Druck|B1
+process|Prozess|B1
+purpose|Zweck|B1
+risk|Risiko|B1
+skill|Fähigkeit|B1
+solution|Lösung|B1
+source|Quelle|B1
+success|Erfolg|B1
+task|Aufgabe|B1
+value|Wert|B1
+accurate|genau|B1
+aware|bewusst|B1
+common|häufig, gemeinsam|B1
+complex|komplex|B1
+current|aktuell|B1
+efficient|effizient|B1
+essential|wesentlich|B1
+likely|wahrscheinlich|B1
+obvious|offensichtlich|B1
+particular|bestimmt|B1
+reliable|zuverlässig|B1
+responsible|verantwortlich|B1
+significant|bedeutend, erheblich|B1
+specific|spezifisch|B1
+sufficient|ausreichend|B1
+willing|bereit|B1
+acknowledge|anerkennen, einräumen|B2
+adapt|anpassen|B2
+address|ansprechen, angehen|B2
+allocate|zuweisen|B2
+anticipate|vorhersehen|B2
+assess|bewerten|B2
+clarify|klären|B2
+collaborate|zusammenarbeiten|B2
+comply|einhalten|B2
+conduct|durchführen|B2
+determine|bestimmen, ermitteln|B2
+distinguish|unterscheiden|B2
+emphasise|betonen|B2
+enhance|verbessern|B2
+evaluate|bewerten|B2
+exceed|überschreiten|B2
+facilitate|erleichtern|B2
+generate|erzeugen|B2
+highlight|hervorheben|B2
+implement|umsetzen|B2
+imply|andeuten|B2
+indicate|hinweisen auf|B2
+initiate|einleiten|B2
+integrate|integrieren|B2
+justify|rechtfertigen|B2
+monitor|überwachen|B2
+negotiate|verhandeln|B2
+obtain|erlangen|B2
+perceive|wahrnehmen|B2
+pursue|verfolgen|B2
+assumption|Annahme|B2
+constraint|Einschränkung|B2
+criteria|Kriterien|B2
+deadline|Frist|B2
+delay|Verzögerung|B2
+estimate|Schätzung|B2
+framework|Rahmen|B2
+implication|Auswirkung|B2
+insight|Einblick|B2
+liability|Haftung|B2
+maintenance|Wartung|B2
+objective|Ziel|B2
+outcome|Ergebnis|B2
+overview|Überblick|B2
+performance|Leistung|B2
+priority|Priorität|B2
+procedure|Verfahren|B2
+requirement|Anforderung|B2
+scope|Umfang|B2
+shortage|Mangel|B2
+stakeholder|Beteiligter|B2
+threshold|Schwelle|B2
+trend|Trend|B2
+ambiguous|mehrdeutig|B2
+comprehensive|umfassend|B2
+consistent|einheitlich|B2
+crucial|entscheidend|B2
+feasible|machbar|B2
+inevitable|unvermeidlich|B2
+redundant|überflüssig|B2
+robust|robust|B2
+subsequent|nachfolgend|B2
+sustainable|nachhaltig|B2
+thorough|gründlich|B2
+viable|tragfähig|B2
+alleviate|lindern|C1
+ambiguity|Mehrdeutigkeit|C1
+articulate|klar ausdrücken|C1
+compelling|überzeugend|C1
+concede|zugeben|C1
+contingent|abhängig von|C1
+convey|vermitteln|C1
+cumbersome|umständlich|C1
+deteriorate|sich verschlechtern|C1
+discrepancy|Abweichung|C1
+diminish|verringern|C1
+endeavour|Bestreben|C1
+entail|mit sich bringen|C1
+exacerbate|verschärfen|C1
+inherent|innewohnend|C1
+leverage|nutzen, Hebelwirkung|C1
+mitigate|abmildern|C1
+nuance|Nuance|C1
+oversight|Versehen, Aufsicht|C1
+paramount|von größter Bedeutung|C1
+plausible|plausibel|C1
+prerequisite|Voraussetzung|C1
+prevalent|weit verbreitet|C1
+reconcile|in Einklang bringen|C1
+scrutiny|genaue Prüfung|C1
+streamline|straffen, optimieren|C1
+substantiate|belegen|C1
+tentative|vorläufig|C1
+undermine|untergraben|C1
+unprecedented|beispiellos|C1
+warrant|rechtfertigen|C1
+yield|ergeben, Ertrag|C1`.split("\n").map(l=>{const p=l.split("|");return{en:p[0],de:p[1],level:p[2]};});
+const LEVELS=["A1","A2","B1","B2","C1"];
+const DAY=86400000, INTERVALS=[0,0,1,3,7,21], KEY="et-standalone-v1";
+
+const GRAMMAR = [{"t": "Present Simple", "r": ["Gewohnheiten, Fakten, Stundenpläne", "he/she/it bekommt -s", "Fragen und Verneinung mit do/does"], "i": [{"q": "She ___ (work) in Munich.", "a": "works", "w": "he/she/it → Verb + s"}, {"q": "___ you like coffee? (like)", "a": "Do", "w": "Frage mit do"}, {"q": "He ___ (not/eat) meat.", "a": "doesn't eat/does not eat", "w": "Verneinung: doesn't + Grundform"}, {"q": "The train ___ (leave) at 7.", "a": "leaves", "w": "Fahrpläne: Present Simple"}, {"q": "We usually ___ (start) at nine.", "a": "start", "w": "usually = Gewohnheit"}, {"q": "Water ___ (boil) at 100 degrees.", "a": "boils", "w": "Naturgesetz = Fakt"}]}, {"t": "Present Continuous", "r": ["Passiert jetzt oder um diesen Zeitraum", "Form: to be + Verb-ing", "Nicht mit know, like, want"], "i": [{"q": "Look! It ___ (rain).", "a": "is raining/'s raining", "w": "passiert genau jetzt"}, {"q": "I ___ (write) an email right now.", "a": "am writing/'m writing", "w": "right now → Continuous"}, {"q": "They ___ (not/watch) TV at the moment.", "a": "aren't watching/are not watching", "w": "Verneinung: be + not + -ing"}, {"q": "___ she coming to the party? (be)", "a": "Is", "w": "Frage: be vor das Subjekt"}, {"q": "We ___ (meet) the customer tomorrow morning.", "a": "are meeting/'re meeting", "w": "fester Termin in naher Zukunft"}, {"q": "He can't talk, he ___ (drive).", "a": "is driving/'s driving", "w": "gerade dabei"}]}, {"t": "Past Simple", "r": ["Abgeschlossen, oft mit Zeitangabe", "Regelmäßig: Verb + -ed", "Fragen und Verneinung mit did"], "i": [{"q": "I ___ (see) him yesterday.", "a": "saw", "w": "see ist unregelmäßig"}, {"q": "She ___ (not/go) to work on Monday.", "a": "didn't go/did not go", "w": "didn't + Grundform"}, {"q": "___ you finish the report? (finish)", "a": "Did", "w": "Frage mit did"}, {"q": "We ___ (buy) a new machine last year.", "a": "bought", "w": "buy → bought"}, {"q": "He ___ (arrive) late this morning.", "a": "arrived", "w": "regelmäßig: -ed"}, {"q": "They ___ (be) very happy.", "a": "were", "w": "be: was/were"}]}, {"t": "Present Perfect", "r": ["Ergebnis zählt jetzt, Zeitpunkt egal", "Form: have/has + Partizip", "Signalwörter: just, already, yet, ever, since, for"], "i": [{"q": "I have just ___ (send) the email.", "a": "sent", "w": "send → sent"}, {"q": "She ___ (live) here since 2020.", "a": "has lived", "w": "since → Present Perfect"}, {"q": "Have you ever ___ (be) to London?", "a": "been", "w": "ever + been"}, {"q": "We ___ (not/receive) the delivery yet.", "a": "haven't received/have not received", "w": "yet in Verneinung"}, {"q": "He has already ___ (finish).", "a": "finished", "w": "already zwischen has und Partizip"}, {"q": "They ___ (know) each other for years.", "a": "have known", "w": "for + Zeitraum"}]}, {"t": "Past Perfect", "r": ["Vorvergangenheit: das Frühere von zwei Ereignissen", "Form: had + Partizip"], "i": [{"q": "The train had already ___ (leave) when I arrived.", "a": "left", "w": "zuerst weg, dann kam ich"}, {"q": "She was tired because she ___ (not/sleep).", "a": "hadn't slept/had not slept", "w": "Grund lag davor"}, {"q": "After he ___ (finish), we went home.", "a": "had finished", "w": "after + Past Perfect"}, {"q": "I realised I ___ (forget) my keys.", "a": "had forgotten", "w": "Vergessen lag davor"}, {"q": "___ they met before the conference? (have)", "a": "Had", "w": "Frage: had vor das Subjekt"}, {"q": "By 2010 the company ___ (grow) a lot.", "a": "had grown", "w": "by + Zeitpunkt"}]}, {"t": "Future: will vs going to", "r": ["will: spontan, Versprechen, Vorhersage", "going to: Plan oder sichtbare Anzeichen"], "i": [{"q": "Look at those clouds! It ___ rain. (go)", "a": "is going to/'s going to", "w": "sichtbares Anzeichen"}, {"q": "The phone's ringing. I ___ answer it. (will)", "a": "will/'ll", "w": "spontane Entscheidung"}, {"q": "We ___ visit my parents next weekend. (Plan, go)", "a": "are going to/'re going to", "w": "fester Plan"}, {"q": "I think prices ___ rise next year. (will)", "a": "will", "w": "Vorhersage mit think"}, {"q": "She ___ start a new job in May. (schon entschieden, go)", "a": "is going to/'s going to", "w": "Absicht steht fest"}, {"q": "Don't worry, I ___ help you. (will)", "a": "will/'ll", "w": "Versprechen"}]}, {"t": "Conditionals (if-clauses)", "r": ["Typ 1: if + Present, will → real", "Typ 2: if + Past, would → unwahrscheinlich", "Typ 0: if + Present, Present → immer wahr"], "i": [{"q": "If it rains, we ___ (stay) home.", "a": "will stay/'ll stay", "w": "Typ 1: will im Hauptsatz"}, {"q": "If I ___ (have) more time, I would learn French.", "a": "had", "w": "Typ 2: Past im if-Satz"}, {"q": "If you heat ice, it ___ (melt).", "a": "melts", "w": "Typ 0: immer wahr"}, {"q": "She would travel more if she ___ (be) rich.", "a": "were/was", "w": "Typ 2: were klingt besser"}, {"q": "If we hurry, we ___ (catch) the train.", "a": "will catch/'ll catch", "w": "Typ 1: realistisch"}, {"q": "What ___ you do if you won the lottery? (would)", "a": "would", "w": "Typ 2: would + Grundform"}]}, {"t": "Passive Voice", "r": ["Handlung wichtiger als Täter", "Form: be + Partizip", "Die Zeit steckt im be"], "i": [{"q": "The machine ___ (repair) yesterday.", "a": "was repaired", "w": "Past: was + Partizip"}, {"q": "These parts ___ (make) in Germany.", "a": "are made", "w": "Present: are + Partizip"}, {"q": "The report has just ___ (send).", "a": "been sent", "w": "Perfect: has been + Partizip"}, {"q": "The office ___ (clean) every evening.", "a": "is cleaned", "w": "Gewohnheit im Passiv"}, {"q": "The new model ___ (launch) next month.", "a": "will be launched", "w": "Futur: will be + Partizip"}, {"q": "My car ___ (steal) last week.", "a": "was stolen", "w": "steal → stolen"}]}, {"t": "Modal Verbs", "r": ["must / have to: Pflicht", "mustn't: verboten — don't have to: nicht nötig", "should: Rat, can/could: Fähigkeit, Bitte"], "i": [{"q": "You ___ wear a helmet here. (Pflicht)", "a": "must/have to", "w": "Sicherheitsregel"}, {"q": "___ you help me, please? (höflich)", "a": "Could/Can", "w": "höfliche Bitte"}, {"q": "You ___ smoke in here. (verboten)", "a": "mustn't/must not", "w": "Verbot"}, {"q": "You look tired. You ___ go to bed.", "a": "should", "w": "Ratschlag"}, {"q": "She ___ speak three languages.", "a": "can", "w": "Fähigkeit"}, {"q": "You ___ pay, it's free. (nicht nötig)", "a": "don't have to/do not have to", "w": "keine Pflicht"}]}, {"t": "Reported Speech", "r": ["Zeit rückt eine Stufe zurück", "will → would, can → could", "Pronomen und Zeitangaben anpassen"], "i": [{"q": "\"I am tired.\" → He said he ___ tired.", "a": "was", "w": "am → was"}, {"q": "\"We will come.\" → They said they ___ come.", "a": "would", "w": "will → would"}, {"q": "\"I like the design.\" → She said she ___ the design.", "a": "liked", "w": "Present → Past"}, {"q": "\"I have finished.\" → He said he ___ finished.", "a": "had", "w": "have → had"}, {"q": "\"I can help you.\" → She said she ___ help me.", "a": "could", "w": "can → could"}, {"q": "\"We are working on it.\" → They said they ___ working on it.", "a": "were", "w": "are → were"}]}, {"t": "Relative Clauses", "r": ["who: Personen — which: Dinge", "that: geht für beides", "whose: Besitz"], "i": [{"q": "The man ___ called you is my boss.", "a": "who/that", "w": "Person → who"}, {"q": "The machine ___ broke down is old.", "a": "which/that", "w": "Ding → which"}, {"q": "That's the woman ___ car was stolen.", "a": "whose", "w": "Besitz → whose"}, {"q": "The email ___ you sent was clear.", "a": "which/that", "w": "Ding → which/that"}, {"q": "A colleague ___ works in sales told me.", "a": "who/that", "w": "Person → who"}, {"q": "The hotel ___ we stayed in was cheap.", "a": "which/that", "w": "Ding → which/that"}]}, {"t": "Gerund vs Infinitive", "r": ["Nach enjoy, finish, avoid, mind: -ing", "Nach want, decide, plan, hope: to", "Nach like/love/hate: meist beides"], "i": [{"q": "I enjoy ___ (read) in the evening.", "a": "reading", "w": "enjoy + -ing"}, {"q": "She decided ___ (change) jobs.", "a": "to change", "w": "decide + to"}, {"q": "We avoid ___ (make) mistakes by checking twice.", "a": "making", "w": "avoid + -ing"}, {"q": "He wants ___ (learn) Python.", "a": "to learn", "w": "want + to"}, {"q": "Would you mind ___ (open) the window?", "a": "opening", "w": "mind + -ing"}, {"q": "They plan ___ (visit) us in June.", "a": "to visit", "w": "plan + to"}]}];
+
+const SPEAK_SEED=[
+ "Could you send me the report by Friday, please?",
+ "I'm afraid there's been a slight delay with the delivery.",
+ "Let me quickly check the numbers before we decide.",
+ "We should probably discuss this in the next meeting.",
+ "I'd rather wait until the customer confirms the order.",
+ "The machine stopped working right after the update.",
+ "That sounds reasonable, but I have one concern.",
+ "I've been working on this project for three weeks."];
+
+/* ================= Zustand ================= */
+let S={cards:{},extra:[],chat:[],stats:{streak:0,reviews:0,correct:0,lastDay:null}};
+let storageOk=true, apiKey="", provider="gemini";
+
+function loadState(){
+  try{
+    const raw=localStorage.getItem(KEY);
+    if(raw){const o=JSON.parse(raw); S=Object.assign(S,o);}
+    apiKey=localStorage.getItem(KEY+":key")||"";
+    provider=localStorage.getItem(KEY+":prov")||(apiKey?"anthropic":"gemini");
+    localStorage.setItem(KEY+":probe","1");
+  }catch(e){
+    storageOk=false;
+    const b=document.getElementById("banner");
+    b.style.display="block";
+    b.textContent="Kein lokaler Speicher — diese Datei ist zum Hosten gedacht (Anleitung im Chat). Tippen für Sicherung.";
+  }
+}
+let saveT=null;
+function save(){
+  if(!storageOk) return;
+  clearTimeout(saveT);
+  saveT=setTimeout(()=>{try{localStorage.setItem(KEY,JSON.stringify(S));
+    document.getElementById("saveinfo").textContent="Automatisch gespeichert "+new Date().toLocaleTimeString("de-DE");
+  }catch(e){}},300);
+}
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden"&&storageOk){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}});
+
+function packState(){
+  const now=Date.now();
+  return JSON.stringify({v:1,
+    c:Object.entries(S.cards).map(([en,k])=>[en,k.box,Math.round((k.due-now)/3600000)]),
+    x:S.extra.map(w=>[w.en,w.de,w.level]),
+    s:[S.stats.streak,S.stats.reviews,S.stats.correct]});
+}
+function unpackState(t){
+  const o=JSON.parse(t.trim());
+  if(o&&o.cards) return o;
+  if(!o||!o.v) return null;
+  const now=Date.now(), cards={};
+  (o.c||[]).forEach(([en,box,h])=>{cards[en]={box:box,due:now+h*3600000};});
+  return {cards:cards, extra:(o.x||[]).map(([en,de,lv])=>({en:en,de:de,level:lv})), chat:[],
+    stats:{streak:(o.s&&o.s[0])||0,reviews:(o.s&&o.s[1])||0,correct:(o.s&&o.s[2])||0,lastDay:null}};
+}
+
+/* ================= Helfer ================= */
+const $=id=>document.getElementById(id);
+const norm=s=>s.toLowerCase().replace(/[^a-z0-9äöüß' ]/g,"").replace(/\s+/g," ").trim();
+function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function speak(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();
+  const u=new SpeechSynthesisUtterance(t);u.lang="en-GB";u.rate=0.92;speechSynthesis.speak(u);}catch(e){}}
+function allWords(){return WORDS.concat(S.extra);}
+function headline(){
+  const learned=Object.values(S.cards).filter(c=>c.box>=3).length;
+  $("subline").textContent=learned+" SITZEN · "+allWords().length+" IM KASTEN";
+  $("streak").textContent=S.stats.streak;
+}
+async function askClaude(messages,system,maxTokens){
+  if(!apiKey) throw new Error("Kein API-Key hinterlegt (Sicherung → Key)");
+  if(provider==="gemini"){
+    const res=await fetch("https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",{
+      method:"POST",
+      headers:{"Content-Type":"application/json","x-goog-api-key":apiKey},
+      body:JSON.stringify({
+        system_instruction:{parts:[{text:system}]},
+        contents:messages.map(m=>({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]})),
+        generationConfig:{maxOutputTokens:Math.max(400,maxTokens||800),thinkingConfig:{thinkingBudget:0}}
+      })});
+    if(!res.ok){
+      let msg="Server antwortet mit "+res.status;
+      try{const eb=await res.json();if(eb&&eb.error&&eb.error.message)msg=eb.error.message;}catch(_e){}
+      throw new Error(msg);
+    }
+    const d=await res.json();
+    const c=d.candidates&&d.candidates[0];
+    const txt=((c&&c.content&&c.content.parts)||[]).map(p=>p.text||"").join("\n");
+    if(!txt) throw new Error("leere Antwort (Tageslimit erreicht?)");
+    return txt;
+  }
+  const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",
+    headers:{"Content-Type":"application/json","x-api-key":apiKey,
+      "anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+    body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:maxTokens||800,system:system,messages:messages})});
+  if(!res.ok){
+    let msg="Server antwortet mit "+res.status;
+    try{const eb=await res.json();if(eb&&eb.error&&eb.error.message)msg=eb.error.message;}catch(_e){}
+    throw new Error(msg);
+  }
+  const d=await res.json();
+  return d.content.filter(c=>c.type==="text").map(c=>c.text).join("\n");
+}
+function parseJSON(text){
+  const c=text.replace(/```json/gi,"").replace(/```/g,"").trim();
+  const st=[c.indexOf("{"),c.indexOf("[")].filter(i=>i>=0);
+  if(!st.length) throw new Error("kein JSON");
+  const b=c.slice(Math.min(...st));
+  const last=Math.max(b.lastIndexOf("}"),b.lastIndexOf("]"));
+  try{return JSON.parse(b.slice(0,last+1));}catch(e){}
+  const objs=[];let d=0,s0=-1,inS=false,escp=false;
+  for(let i=0;i<b.length;i++){const ch=b[i];
+    if(inS){if(escp)escp=false;else if(ch==="\\")escp=true;else if(ch==='"')inS=false;continue;}
+    if(ch==='"'){inS=true;continue;}
+    if(ch==="{"){if(d===0)s0=i;d++;}
+    else if(ch==="}"){d--;if(d===0&&s0>=0){try{objs.push(JSON.parse(b.slice(s0,i+1)));}catch(e){}s0=-1;}}}
+  if(objs.length===1)return objs[0];
+  if(objs.length)return objs;
+  throw new Error("Antwort unvollständig");
+}
+
+/* ================= Tabs ================= */
+let TAB="vocab";
+function go(t){TAB=t;document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));render();}
+function render(){
+  headline();
+  if(TAB==="vocab")renderVocab();
+  else if(TAB==="grammar")renderGrammar();
+  else if(TAB==="speak")renderSpeak();
+  else renderChat();
+}
+
+/* ================= Karten ================= */
+let V={level:"A1",reverse:false,queue:[],idx:0,flipped:false,right:0,wrong:0,loading:false,err:""};
+function pool(){return V.level==="Alle"?allWords():allWords().filter(w=>w.level===V.level);}
+function buildRound(){
+  const now=Date.now(), p=pool();
+  const due=shuffle(p.filter(w=>S.cards[w.en]&&S.cards[w.en].due<=now));
+  const fresh=p.filter(w=>!S.cards[w.en]).slice(0,8);
+  V.queue=shuffle(due.slice(0,Math.max(0,20-fresh.length)).concat(fresh));
+  V.idx=0;V.flipped=false;V.right=0;V.wrong=0;
+}
+function grade(known){
+  const w=V.queue[V.idx]; if(!w)return;
+  const now=Date.now(), prev=S.cards[w.en]||{box:1};
+  const box=known?Math.min(5,prev.box+1):1;
+  S.cards[w.en]={box:box,due:now+INTERVALS[box]*DAY};
+  const today=new Date().toDateString(), yest=new Date(Date.now()-DAY).toDateString();
+  S.stats.reviews++; if(known)S.stats.correct++;
+  S.stats.streak = S.stats.lastDay===today?S.stats.streak : (S.stats.lastDay===yest?S.stats.streak+1:1);
+  S.stats.lastDay=today;
+  if(known){V.right++;V.idx++;}
+  else{V.wrong++;const q=V.queue;const c=q.splice(V.idx,1)[0];q.splice(Math.min(q.length,V.idx+3),0,c);}
+  V.flipped=false; save(); render();
+}
+async function loadMore(){
+  V.loading=true;V.err="";render();
+  try{
+    const lv=V.level==="Alle"?"B1":V.level;
+    const known=allWords().filter(w=>w.level===lv).map(w=>w.en);
+    const txt=await askClaude([{role:"user",content:"Level "+lv+". Bereits vorhanden: "+known.join(", ")+". Gib 20 NEUE englische Wörter dieses Levels (die nächsthäufigsten, keine aus der Liste)."}],
+      'Vokabeln für einen deutschsprachigen Lerner. Antworte NUR mit JSON-Array: [{"en":"word","de":"Übersetzung","level":"'+lv+'"}]. Übersetzung max 3 Wörter.');
+    const have=new Set(allWords().map(w=>w.en));
+    parseJSON(txt).forEach(w=>{if(w&&w.en&&w.de&&!have.has(String(w.en).toLowerCase()))
+      S.extra.push({en:String(w.en).toLowerCase(),de:String(w.de),level:lv});});
+    save();
+  }catch(e){V.err=e.message;}
+  V.loading=false;buildRound();render();
+}
+function renderVocab(){
+  const p=pool(), counts=[0,0,0,0,0];
+  p.forEach(w=>{const k=S.cards[w.en];if(k)counts[Math.min(4,k.box-1)]++;});
+  const unseen=p.filter(w=>!S.cards[w.en]).length;
+  let h='<div class="chips">'+["Alle"].concat(LEVELS).map(l=>
+    '<button class="chip'+(V.level===l?" on":"")+'" onclick="V.level=\''+l+'\';buildRound();render()">'+l+'</button>').join("")+'</div>';
+  h+='<div style="display:flex;justify-content:space-between;align-items:flex-end">';
+  h+='<div class="rail"><div class="drawer new"><div class="box"></div><span class="n">'+unseen+'</span></div><div class="sep"></div>';
+  counts.forEach(c=>{h+='<div class="drawer"><div class="box"><div class="fill" style="height:'+Math.min(100,c/40*100)+'%"></div></div><span class="n">'+c+'</span></div>';});
+  h+='</div><button class="chip" onclick="V.reverse=!V.reverse;render()">'+(V.reverse?"DE → EN":"EN → DE")+'</button></div>';
+
+  const w=V.queue[V.idx];
+  if(!w){
+    h+='<div class="card center"><h3>Runde fertig</h3><p class="mono" style="margin-top:8px">'+V.right+' gewusst · '+V.wrong+' wiederholt</p>';
+    h+='<button class="btn primary" onclick="buildRound();render()">Nächste Runde</button>';
+    h+='<button class="btn ghost" onclick="loadMore()"'+(V.loading?" disabled":"")+'>'+(V.loading?"lädt …":"✦ 20 neue Wörter laden (KI)")+'</button>';
+    if(V.err)h+='<p class="why" style="color:var(--red)">'+esc(V.err)+'</p>';
+    h+='</div>';
+  }else{
+    const k=S.cards[w.en];
+    h+='<p class="meta">Karte '+(V.idx+1)+' / '+V.queue.length+(k?" · Fach "+k.box:" · neu")+'</p>';
+    const front=V.reverse?w.de:w.en, back=V.reverse?w.en:w.de;
+    h+='<div class="flip'+(V.flipped?" turned":"")+'" onclick="V.flipped=!V.flipped;render()"><div class="inner">';
+    h+='<div class="face"><div class="word">'+esc(front)+'</div>'+(!V.reverse?'<button class="spk" onclick="event.stopPropagation();speak(\''+w.en.replace(/'/g,"\\'")+'\')">&#128264;</button>':"")+'<span class="hint">tippen zum Umdrehen</span></div>';
+    h+='<div class="face back"><div class="word">'+esc(back)+'</div>'+(V.reverse?'<button class="spk" onclick="event.stopPropagation();speak(\''+w.en.replace(/'/g,"\\'")+'\')">&#128264;</button>':"")+'</div>';
+    h+='</div></div>';
+    h+=V.flipped
+      ?'<div class="row"><button class="btn bad" onclick="grade(false)">✕ Nochmal</button><button class="btn good" onclick="grade(true)">✓ Gewusst</button></div>'
+      :'<button class="btn primary" onclick="V.flipped=true;render()">Antwort zeigen</button>';
+  }
+  $("main").innerHTML=h;
+}
+
+/* ================= Grammatik ================= */
+let G={topic:null,items:[],rule:[],answers:{},checked:false,loading:false,err:""};
+function isRight(it,val){return String(it.a).split("/").some(a=>norm(a)===norm(val||""));}
+function openTopic(i){
+  const t=GRAMMAR[i];
+  G={topic:t.t,rule:t.r,items:shuffle(t.i).slice(0,6),answers:{},checked:false,loading:false,err:""};
+  render();
+}
+function checkG(){
+  G.items.forEach((it,i)=>{G.answers[i]=($("g"+i)||{}).value||"";});
+  G.checked=true;render();
+}
+async function aiSet(){
+  G.loading=true;G.err="";render();
+  try{
+    const txt=await askClaude([{role:"user",content:"Thema: "+G.topic}],
+      'Englischlehrer für deutschsprachigen Lerner (B1). NUR JSON: {"items":[{"q":"Satz mit ___ (Hinweis)","a":"Lösung","w":"Erklärung deutsch, max 8 Wörter"}]} — genau 5 items. Mehrere Lösungen mit / trennen.');
+    const raw=parseJSON(txt);
+    const items=(Array.isArray(raw)?raw:raw.items||[]).filter(x=>x&&x.q&&x.a);
+    if(!items.length)throw new Error("keine Aufgaben erhalten");
+    G.items=items;G.answers={};G.checked=false;
+  }catch(e){G.err=e.message;}
+  G.loading=false;render();
+}
+function renderGrammar(){
+  let h="";
+  if(!G.topic){
+    h='<p class="meta">THEMA WÄHLEN</p><div class="list">';
+    GRAMMAR.forEach((t,i)=>{h+='<button onclick="openTopic('+i+')"><span class="t">'+esc(t.t)+'</span><span style="color:var(--faint)">›</span></button>';});
+    h+='</div>';
+  }else{
+    h='<button class="chip" onclick="G.topic=null;render()">← alle Themen</button>';
+    h+='<h1 style="font-family:Georgia,serif;margin:12px 0 0">'+esc(G.topic)+'</h1>';
+    h+='<div class="rules">'+G.rule.map((r,i)=>'<div><span>'+(i+1)+'</span>'+esc(r)+'</div>').join("")+'</div>';
+    G.items.forEach((it,i)=>{
+      const ok=G.checked&&isRight(it,G.answers[i]);
+      h+='<div class="card"><div style="font-size:15px">'+esc(it.q)+'</div>';
+      h+='<input type="text" id="g'+i+'" value="'+esc(G.answers[i]||"")+'" placeholder="deine Antwort" class="'+(G.checked?(ok?"ok":"no"):"")+'"'+(G.checked?" readonly":"")+'>';
+      if(G.checked&&!ok)h+='<p class="why"><b>'+esc(it.a)+'</b> — '+esc(it.w)+'</p>';
+      h+='</div>';
+    });
+    if(G.checked){
+      const score=G.items.filter((it,i)=>isRight(it,G.answers[i])).length;
+      h+='<div class="card center"><div class="score">'+score+' / '+G.items.length+'</div>';
+      h+='<button class="btn primary" onclick="openTopic('+GRAMMAR.findIndex(t=>t.t===G.topic)+')">Nochmal mischen</button>';
+      h+='<button class="btn ghost" onclick="aiSet()"'+(G.loading?" disabled":"")+'>'+(G.loading?"lädt …":"✦ Neue Sätze (KI)")+'</button>';
+      if(G.err)h+='<p class="why" style="color:var(--red)">'+esc(G.err)+'</p>';
+      h+='</div>';
+    }else{
+      h+='<button class="btn primary" onclick="checkG()">Prüfen</button>';
+    }
+  }
+  $("main").innerHTML=h;
+}
+
+/* ================= Spracherkennung ================= */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let recActive=false,recObj=null;
+function record(cb,rerender){
+  if(!SR)return;
+  const rr=()=>{if(rerender)render();};
+  if(recActive){try{recObj.stop();}catch(e){}recActive=false;rr();return;}
+  recObj=new SR();recObj.lang="en-GB";recObj.interimResults=false;recObj.maxAlternatives=1;
+  recObj.onresult=e=>{cb(e.results[0][0].transcript);};
+  recObj.onend=()=>{recActive=false;rr();};
+  recObj.onerror=()=>{recActive=false;rr();};
+  try{recObj.start();recActive=true;rr();}catch(e){recActive=false;}
+}
+
+/* ================= Sprechen ================= */
+let P={bank:SPEAK_SEED,i:0,said:"",typed:"",loading:false};
+function alignWords(target,said){
+  const t=norm(target).split(" ").filter(Boolean), s=norm(said).split(" ").filter(Boolean);
+  const dp=Array.from({length:t.length+1},()=>new Array(s.length+1).fill(0));
+  for(let i=1;i<=t.length;i++)for(let j=1;j<=s.length;j++)
+    dp[i][j]=t[i-1]===s[j-1]?dp[i-1][j-1]+1:Math.max(dp[i-1][j],dp[i][j-1]);
+  const m=new Set();let i=t.length,j=s.length;
+  while(i>0&&j>0){if(t[i-1]===s[j-1]){m.add(i-1);i--;j--;}else if(dp[i-1][j]>=dp[i][j-1])i--;else j--;}
+  return{words:t,m:m,score:t.length?Math.round(m.size/t.length*100):0};
+}
+async function moreSentences(){
+  P.loading=true;render();
+  try{
+    const txt=await askClaude([{role:"user",content:"8 neue Sätze, Alltag und Büro gemischt."}],
+      'NUR JSON-Array aus 8 englischen Sätzen (je 8–14 Wörter, britisch, B1): ["…"]');
+    const arr=parseJSON(txt).filter(s=>typeof s==="string");
+    if(arr.length){P.bank=arr;P.i=0;P.said="";P.typed="";}
+  }catch(e){}
+  P.loading=false;render();
+}
+function renderSpeak(){
+  const target=P.bank[P.i%P.bank.length];
+  const r=P.said?alignWords(target,P.said):null;
+  let h='<p class="meta">NACHSPRECHEN · SATZ '+((P.i%P.bank.length)+1)+' / '+P.bank.length+'</p>';
+  h+='<div class="card"><div class="target">';
+  h+=r?r.words.map((w,k)=>'<span class="'+(r.m.has(k)?"hit":"miss")+'">'+esc(w)+' </span>').join("")
+      :esc(target);
+  h+='</div><button class="btn ghost" style="width:auto;padding:10px 16px" onclick="speak('+JSON.stringify(target).replace(/"/g,"&quot;")+')">&#9654; Vorsprechen lassen</button></div>';
+  if(r)h+='<div class="card center"><div class="score">'+r.score+'%</div><p class="why">Verstanden: „'+esc(P.said)+'“</p></div>';
+  if(SR){
+    h+='<button class="btn '+(recActive?"bad":"primary")+'" onclick="P.said=\'\';record(t=>{P.said=t;render()},true)">'+(recActive?"&#127908; Höre zu … tippen zum Stoppen":"&#127908; Aufnehmen und nachsprechen")+'</button>';
+  }else{
+    h+='<div class="card"><p class="why">Mikrofon hier nicht verfügbar. Sprich laut und tippe den Satz aus dem Gedächtnis:</p>';
+    h+='<input type="text" id="typedbox" value="'+esc(P.typed)+'" placeholder="Satz aus dem Gedächtnis">';
+    h+='<button class="btn ghost" onclick="P.typed=$(\'typedbox\').value;P.said=P.typed;render()">Vergleichen</button></div>';
+  }
+  h+='<div class="row"><button class="btn ghost" onclick="P.i++;P.said=\'\';P.typed=\'\';render()">↻ Nächster Satz</button>';
+  h+='<button class="btn ghost" onclick="moreSentences()"'+(P.loading?" disabled":"")+'>'+(P.loading?"lädt …":"✦ Neue Sätze (KI)")+'</button></div>';
+  $("main").innerHTML=h;
+}
+
+/* ================= Chat ================= */
+let C={loading:false,err:""};
+async function sendChat(){
+  const box=$("chatin"); const text=(box.value||"").trim();
+  if(!text||C.loading)return;
+  S.chat.push({role:"user",content:text}); box.value=""; C.loading=true;C.err=""; save(); render();
+  try{
+    const txt=await askClaude(S.chat.map(m=>({role:m.role,content:m.content})),
+      'Du bist Oliver, 34, aus Manchester, lockerer Brieffreund. Der Nutzer lernt Englisch (B1). Antworte NUR mit JSON: {"correction":"…" oder null,"reply":"…"}. correction: max 2 Fehler der letzten Nachricht, deutsch, kurz, "falsch → richtig (Grund)". reply: Englisch, 2–4 Sätze, endet mit Frage.');
+    const p=parseJSON(txt);
+    S.chat.push({role:"assistant",content:p.reply,correction:p.correction||null});
+    speak(p.reply); save();
+  }catch(e){C.err=e.message;}
+  C.loading=false;render();
+  const m=$("main");m.scrollTop=m.scrollHeight;
+}
+function renderChat(){
+  let h="";
+  if(!apiKey){
+    h+='<div class="card"><h3>Oliver braucht einen Schlüssel</h3><p class="why" style="margin-top:8px">Der Chat ruft eine KI auf. Hinterlege einmalig einen API-Key unter Sicherung — mit Google Gemini kostenlos, ohne Kreditkarte.</p><button class="btn primary" onclick="openBackup()">Zu den Einstellungen</button></div>';
+    $("main").innerHTML=h; return;
+  }
+  if(!S.chat.length)h+='<div class="card"><h3>Oliver aus Manchester</h3><p class="why" style="margin-top:8px">Schreib ihm auf Englisch. Er korrigiert kurz und redet dann normal weiter.</p></div>';
+  S.chat.forEach(m=>{
+    if(m.role==="user")h+='<div class="msg me">'+esc(m.content)+'</div>';
+    else{
+      if(m.correction)h+='<div class="corr">'+esc(m.correction)+'</div>';
+      h+='<div class="msg ol">'+esc(m.content)+' <button class="spk" style="width:30px;height:30px;font-size:14px;margin:0;vertical-align:middle" onclick="speak('+JSON.stringify(m.content).replace(/"/g,"&quot;")+')">&#128264;</button></div>';
+    }
+  });
+  if(C.loading)h+='<p class="mono">Oliver tippt …</p>';
+  if(C.err)h+='<p class="why" style="color:var(--red)">'+esc(C.err)+'</p>';
+  h+='<div style="display:flex;gap:8px;margin-top:14px">';
+  if(SR)h+='<button class="x" style="width:46px;height:46px" onclick="record(t=>{$(\'chatin\').value+=($(\'chatin\').value?\' \':\'\')+t})">&#127908;</button>';
+  h+='<input type="text" id="chatin" placeholder="Write in English …" style="margin:0" onkeydown="if(event.key===\'Enter\')sendChat()">';
+  h+='<button class="x" style="width:46px;height:46px;background:var(--amber);color:#1c1917" onclick="sendChat()">➤</button></div>';
+  $("main").innerHTML=h;
+}
+
+/* ================= Sicherung ================= */
+function openBackup(){$("exportbox").value=packState();$("keybox").value=apiKey;$("provbox").value=provider;provChanged();$("backup").classList.add("show");}
+function closeBackup(){$("backup").classList.remove("show");}
+function copyExport(){
+  const t=packState();
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(
+    ()=>{$("notice").textContent="Kurzcode kopiert.";},
+    ()=>{$("notice").textContent="Kopieren ging nicht — Feld antippen und alles markieren.";});}
+  else{$("notice").textContent="Feld antippen und alles markieren.";}
+}
+function doImport(){
+  try{
+    const next=unpackState($("importbox").value);
+    if(!next)throw new Error("leer");
+    S=Object.assign({cards:{},extra:[],chat:[],stats:{streak:0,reviews:0,correct:0,lastDay:null}},next);
+    save();$("importbox").value="";closeBackup();buildRound();render();
+  }catch(e){$("notice").textContent="Code war unvollständig — bitte komplett einfügen.";}
+}
+function provChanged(){
+  provider=$("provbox").value;
+  try{localStorage.setItem(KEY+":prov",provider);}catch(e){}
+  $("keybox").placeholder=provider==="gemini"?"AIza…":"sk-ant-…";
+  $("keyhint").textContent=provider==="gemini"
+    ?"Kostenlosen Key holen: aistudio.google.com → „Get API key“. Ohne Kreditkarte. Hinweis: Im Gratis-Tarif darf Google Eingaben zum Verbessern seiner Modelle nutzen."
+    :"Key holen: console.anthropic.com → API Keys. Braucht Guthaben, kostet Centbeträge pro Nutzung.";
+}
+async function saveKey(){
+  apiKey=$("keybox").value.trim();
+  provider=$("provbox").value;
+  try{localStorage.setItem(KEY+":prov",provider);}catch(e){}
+  try{localStorage.setItem(KEY+":key",apiKey);}catch(e){}
+  if(!apiKey){$("notice").textContent="Key entfernt.";return;}
+  $("notice").textContent="Key gespeichert — teste …";
+  try{
+    await askClaude([{role:"user",content:"OK?"}],"Antworte nur mit OK.",10);
+    $("notice").textContent="✓ Key funktioniert — Chat, KI-Grammatik und neue Wörter sind frei.";
+  }catch(e){$("notice").textContent="Key gespeichert, aber Test fehlgeschlagen: "+e.message;}
+}
+
+/* ================= Start ================= */
+loadState();buildRound();render();
+if(storageOk)$("saveinfo").textContent="Automatisches Speichern aktiv";
+</script>
+</body>
+</html>
