@@ -856,16 +856,25 @@ function renderGrammar(){
 
 /* ================= Spracherkennung ================= */
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-let recActive=false,recObj=null;
+let recActive=false,recObj=null,recErr="";
+const REC_HINTS={
+  "not-allowed":"iOS lässt die Spracherkennung hier nicht zu. Vom Home-Bildschirm aus blockiert iOS sie generell — nutze das Tastatur-Diktat unten oder öffne die Seite direkt in Safari.",
+  "service-not-allowed":"iOS blockiert den Erkennungsdienst. Prüfe: Einstellungen → Allgemein → Tastatur → „Diktieren“ aktivieren. Oder nutze das Tastatur-Diktat unten.",
+  "no-speech":"Nichts gehört — nochmal versuchen, etwas näher ans Mikrofon.",
+  "audio-capture":"Kein Mikrofon gefunden. Mikrofon-Zugriff für Safari erlaubt? (Einstellungen → Apps → Safari → Mikrofon)",
+  "network":"Die Erkennung braucht eine Internetverbindung."
+};
 function record(cb,rerender){
   if(!SR)return;
   const rr=()=>{if(rerender)render();};
   if(recActive){try{recObj.stop();}catch(e){}recActive=false;rr();return;}
+  recErr="";
   recObj=new SR();recObj.lang="en-GB";recObj.interimResults=false;recObj.maxAlternatives=1;
   recObj.onresult=e=>{cb(e.results[0][0].transcript);};
   recObj.onend=()=>{recActive=false;rr();};
-  recObj.onerror=()=>{recActive=false;rr();};
-  try{recObj.start();recActive=true;rr();}catch(e){recActive=false;}
+  recObj.onerror=e=>{recErr=REC_HINTS[e.error]||("Erkennung abgebrochen ("+(e.error||"unbekannt")+"). Nutze zur Not das Tastatur-Diktat unten.");recActive=false;rr();};
+  try{recObj.start();recActive=true;rr();}
+  catch(e){recErr="Konnte nicht starten — nutze das Tastatur-Diktat unten.";recActive=false;rr();}
 }
 
 /* ================= Sprechen ================= */
@@ -899,12 +908,13 @@ function renderSpeak(){
   h+='</div><button class="btn ghost" style="width:auto;padding:10px 16px" onclick="speak('+JSON.stringify(target).replace(/"/g,"&quot;")+')">&#9654; Vorsprechen lassen</button></div>';
   if(r)h+='<div class="card center"><div class="score">'+r.score+'%</div><p class="why">Verstanden: „'+esc(P.said)+'“</p></div>';
   if(SR){
+    if(navigator.standalone)h+='<p class="why">Hinweis: Als Home-Bildschirm-App blockiert iOS die Web-Spracherkennung oft. Tut der Knopf nichts, nimm das Tastatur-Diktat darunter.</p>';
     h+='<button class="btn '+(recActive?"bad":"primary")+'" onclick="P.said=\'\';record(t=>{P.said=t;render()},true)">'+(recActive?"&#127908; Höre zu … tippen zum Stoppen":"&#127908; Aufnehmen und nachsprechen")+'</button>';
-  }else{
-    h+='<div class="card"><p class="why">Mikrofon hier nicht verfügbar. Sprich laut und tippe den Satz aus dem Gedächtnis:</p>';
-    h+='<input type="text" id="typedbox" value="'+esc(P.typed)+'" placeholder="Satz aus dem Gedächtnis">';
-    h+='<button class="btn ghost" onclick="P.typed=$(\'typedbox\').value;P.said=P.typed;render()">Vergleichen</button></div>';
+    if(recErr)h+='<p class="why" style="color:var(--red)">'+esc(recErr)+'</p>';
   }
+  h+='<div class="card"><p class="why">'+(SR?"Geht immer, auch wenn das Mikro oben streikt:":"Web-Spracherkennung ist hier nicht verfügbar — so geht es trotzdem:")+' Feld antippen, dann das Mikrofon-Symbol auf der iOS-Tastatur drücken (Diktat) und den Satz sprechen. Fehlt das Symbol: Einstellungen → Allgemein → Tastatur → „Diktieren“ einschalten.</p>';
+  h+='<input type="text" id="typedbox" value="'+esc(P.typed)+'" placeholder="hier per Tastatur-Diktat sprechen" lang="en">';
+  h+='<button class="btn ghost" onclick="P.typed=$(\'typedbox\')?$(\'typedbox\').value:\'\';P.said=P.typed;render()">Vergleichen</button></div>';
   h+='<div class="row"><button class="btn ghost" onclick="P.i++;P.said=\'\';P.typed=\'\';render()">↻ Nächster Satz</button>';
   h+='<button class="btn ghost" onclick="moreSentences()"'+(P.loading?" disabled":"")+'>'+(P.loading?"lädt …":"✦ Neue Sätze (KI)")+'</button></div>';
   $("main").innerHTML=h;
