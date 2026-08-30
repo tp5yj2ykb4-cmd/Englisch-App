@@ -921,7 +921,7 @@ async function sendChat(){
       'Du bist Oliver, 34, aus Manchester, lockerer Brieffreund. Der Nutzer lernt Englisch (B1). Antworte NUR mit JSON: {"correction":"…" oder null,"reply":"…"}. correction: max 2 Fehler der letzten Nachricht, deutsch, kurz, "falsch → richtig (Grund)". reply: Englisch, 2–4 Sätze, endet mit Frage.');
     const p=parseJSON(txt);
     S.chat.push({role:"assistant",content:p.reply,correction:p.correction||null});
-    speak(p.reply); save();
+    save();
   }catch(e){C.err=e.message;}
   C.loading=false;render();
   const m=$("main");m.scrollTop=m.scrollHeight;
