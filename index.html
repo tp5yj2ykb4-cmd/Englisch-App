@@ -638,8 +638,14 @@ async function askClaude(messages,system,maxTokens){
       generationConfig:{maxOutputTokens:Math.max(1024,maxTokens||800)}
     });
     const tryModel=async(model)=>{
-      const res=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+model+":generateContent",
-        {method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":apiKey},body:payload});
+      let res;
+      try{
+        res=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+model+":generateContent",
+          {method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":apiKey},body:payload});
+      }catch(netErr){
+        const err=new Error("Netzwerkfehler: Die Anfrage kam gar nicht bei Google an („Load failed“). Häufigste Ursachen: Key-Einschränkung in AI Studio (Anwendungsbeschränkung „Websites“ ohne deine GitHub-Adresse), Werbeblocker/VPN oder kurz kein Netz. Notlösung: neuen Key ohne Anwendungsbeschränkung anlegen.");
+        err.code=0;throw err;
+      }
       if(!res.ok){
         let msg="Server antwortet mit "+res.status;
         try{const eb=await res.json();if(eb&&eb.error&&eb.error.message)msg=eb.error.message;}catch(_e){}
@@ -688,10 +694,15 @@ async function askClaude(messages,system,maxTokens){
     }catch(_e){}
     throw lastErr||new Error("kein Gemini-Modell verfügbar");
   }
-  const res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",
-    headers:{"Content-Type":"application/json","x-api-key":apiKey,
-      "anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
-    body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:maxTokens||800,system:system,messages:messages})});
+  let res;
+  try{
+    res=await fetch("https://api.anthropic.com/v1/messages",{method:"POST",
+      headers:{"Content-Type":"application/json","x-api-key":apiKey,
+        "anthropic-version":"2023-06-01","anthropic-dangerous-direct-browser-access":"true"},
+      body:JSON.stringify({model:"claude-haiku-4-5-20251001",max_tokens:maxTokens||800,system:system,messages:messages})});
+  }catch(netErr){
+    throw new Error("Netzwerkfehler: Anfrage kam nicht durch („Load failed“) — Werbeblocker, VPN oder kein Netz?");
+  }
   if(!res.ok){
     let msg="Server antwortet mit "+res.status;
     try{const eb=await res.json();if(eb&&eb.error&&eb.error.message)msg=eb.error.message;}catch(_e){}
@@ -941,7 +952,14 @@ async function sendChat(){
   if(!text||C.loading)return;
   S.chat.push({role:"user",content:text}); box.value=""; C.loading=true;C.err=""; save(); render();
   try{
-    const txt=await askClaude(S.chat.map(m=>({role:m.role,content:m.content})),
+    const msgs=[];
+    S.chat.slice(-20).forEach(m=>{
+      const last=msgs[msgs.length-1];
+      if(last&&last.role===m.role)last.content+="\n"+m.content;
+      else msgs.push({role:m.role,content:m.content});
+    });
+    while(msgs.length&&msgs[0].role!=="user")msgs.shift();
+    const txt=await askClaude(msgs,
       'Du bist Oliver, 34, aus Manchester, lockerer Brieffreund. Der Nutzer lernt Englisch (B1).\n'+
       'Antworte NUR mit JSON, ohne Markdown: {"correction":null,"reply":"…"}\n'+
       'Regeln für correction:\n'+
