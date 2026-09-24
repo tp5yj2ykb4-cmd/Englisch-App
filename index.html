@@ -11,95 +11,208 @@
 <title>English Trainer</title>
 <style>
 :root{
-  --bg:#fafaf9; --panel:#ffffff; --panel2:#e7e5e4; --line:#d6d3d1;
-  --txt:#292524; --dim:#57534e; --faint:#78716c;
-  --amber:#f59e0b; --amber2:#b45309; --green:#059669; --red:#e11d48;
+  --bg:#faf9f7; --panel:#ffffff; --panel2:#efedea; --line:#dfdbd4;
+  --txt:#1c1917; --dim:#57534e; --faint:#8b827a;
+  --amber:#f59e0b; --amber2:#b45309; --amber-soft:#fef3c7;
+  --green:#059669; --red:#e11d48;
+  --r-sm:12px; --r-md:16px; --r-lg:20px; --r-xl:26px;
+  --sh-1:0 1px 2px rgba(28,25,23,.05), 0 2px 8px -2px rgba(28,25,23,.06);
+  --sh-2:0 2px 6px rgba(28,25,23,.05), 0 14px 34px -14px rgba(28,25,23,.20);
+  --ease:cubic-bezier(.22,.61,.36,1);
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
 html,body{margin:0; height:100%; background:var(--bg); color:var(--txt);
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  -webkit-font-smoothing:antialiased; font-variant-numeric:tabular-nums}
+body{background-image:radial-gradient(130% 55% at 50% 0%, #fff6e3 0%, rgba(255,246,227,0) 62%)}
 #app{display:flex; flex-direction:column; height:100%; max-width:520px; margin:0 auto}
-header{display:flex; justify-content:space-between; align-items:center;
-  padding:14px 16px 10px; border-bottom:1px solid var(--panel2)}
-h1{font-family:Georgia,'Times New Roman',serif; font-size:20px; margin:0; color:#1c1917}
-.sub{font-family:ui-monospace,Menlo,monospace; font-size:10px; letter-spacing:.12em; color:var(--faint); margin-top:3px}
-.pill{display:flex; align-items:center; gap:6px; background:var(--panel); border:1px solid var(--panel2); border-radius:999px;
-  padding:6px 12px; font-family:ui-monospace,monospace; font-size:12px}
-main{flex:1; overflow-y:auto; padding:18px 16px 24px; -webkit-overflow-scrolling:touch}
-nav{display:grid; grid-template-columns:repeat(4,1fr); border-top:1px solid var(--panel2);
-  padding-bottom:env(safe-area-inset-bottom)}
-nav button{background:none; border:none; color:var(--faint); padding:10px 0 12px;
-  font-family:ui-monospace,monospace; font-size:10px; letter-spacing:.06em; cursor:pointer}
-nav button.on{color:var(--amber2)}
-nav button .ic{font-size:18px; display:block; margin-bottom:3px}
-.btn{display:block; width:100%; border:none; border-radius:14px; padding:14px;
-  font-size:15px; font-weight:600; cursor:pointer; margin-top:10px}
-.btn.primary{background:var(--amber); color:#1c1917}
+
+/* Kopf: Safe Area oben war vorher nicht berücksichtigt — im Home-Bildschirm-
+   Modus lief der Titel sonst unter die Statusleiste. */
+header{display:flex; justify-content:space-between; align-items:center; gap:12px;
+  padding:calc(env(safe-area-inset-top, 0px) + 14px) 16px 12px;
+  border-bottom:1px solid rgba(28,25,23,.06)}
+h1{font-family:Georgia,'Times New Roman',serif; font-size:21px; letter-spacing:-.01em;
+  margin:0; color:var(--txt)}
+.sub{font-family:ui-monospace,Menlo,monospace; font-size:9.5px; letter-spacing:.14em;
+  color:var(--faint); margin-top:4px; text-transform:uppercase}
+.pill{display:flex; align-items:center; gap:6px; flex:0 0 auto;
+  background:linear-gradient(180deg,#fffbeb,var(--amber-soft));
+  border:1px solid rgba(245,158,11,.28); border-radius:999px;
+  padding:7px 13px; font-family:ui-monospace,monospace; font-size:12px; font-weight:600;
+  color:var(--amber2); box-shadow:var(--sh-1)}
+main{flex:1; overflow-y:auto; padding:18px 16px 28px; -webkit-overflow-scrolling:touch;
+  overscroll-behavior-y:contain}
+
+/* Tableiste mit Pillen-Markierung statt nur Farbwechsel. */
+nav{display:grid; grid-template-columns:repeat(4,1fr); gap:4px;
+  border-top:1px solid rgba(28,25,23,.07);
+  background:rgba(255,255,255,.86);
+  -webkit-backdrop-filter:saturate(180%) blur(16px); backdrop-filter:saturate(180%) blur(16px);
+  padding:7px 8px calc(env(safe-area-inset-bottom, 0px) + 7px)}
+nav button{background:none; border:none; color:var(--faint); border-radius:14px;
+  padding:7px 0 6px; font-family:ui-monospace,monospace; font-size:9.5px;
+  letter-spacing:.06em; cursor:pointer;
+  transition:background .22s var(--ease), color .22s var(--ease), transform .12s var(--ease)}
+nav button.on{color:var(--amber2); background:var(--amber-soft)}
+nav button:active{transform:scale(.93)}
+nav button .ic{font-size:19px; display:block; margin-bottom:3px}
+
+.btn{display:block; width:100%; border:none; border-radius:var(--r-md); padding:15px;
+  font-size:15px; font-weight:600; letter-spacing:-.01em; cursor:pointer; margin-top:10px;
+  transition:transform .12s var(--ease), box-shadow .22s var(--ease), opacity .2s}
+.btn:active{transform:scale(.985)}
+.btn.primary{background:linear-gradient(180deg,#fbbf24,#f59e0b); color:#3d2808;
+  box-shadow:0 1px 2px rgba(180,83,9,.22), 0 8px 20px -8px rgba(245,158,11,.6)}
 .btn.ghost{background:var(--panel2); color:var(--txt)}
-.btn.good{background:var(--green); color:#ffffff}
-.btn.bad{background:var(--panel2); color:var(--red); border:1px solid var(--line)}
-.btn:disabled{opacity:.4}
+.btn.good{background:linear-gradient(180deg,#10b981,#059669); color:#fff;
+  box-shadow:0 1px 2px rgba(5,150,105,.22), 0 8px 20px -8px rgba(5,150,105,.5)}
+.btn.bad{background:var(--panel); color:var(--red); border:1px solid var(--line);
+  box-shadow:var(--sh-1)}
+.btn:disabled{opacity:.45; box-shadow:none}
 .row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
-.chips{display:flex; gap:8px; overflow-x:auto; padding-bottom:6px}
-.chip{flex:0 0 auto; border:none; border-radius:999px; padding:7px 13px; cursor:pointer;
-  font-family:ui-monospace,monospace; font-size:12px; background:var(--panel2); color:var(--dim)}
-.chip.on{background:var(--amber); color:#1c1917}
+
+/* Segmentierte Umschaltung für Üben / Statistik / Wörter. */
+.seg{display:flex; gap:3px; background:var(--panel2); border-radius:var(--r-md);
+  padding:3px; margin-bottom:14px}
+.seg button{flex:1; border:none; background:none; border-radius:13px; padding:9px 0;
+  font-size:13px; font-weight:600; letter-spacing:-.01em; color:var(--dim); cursor:pointer;
+  transition:background .22s var(--ease), color .22s var(--ease), box-shadow .22s var(--ease)}
+.seg button.on{background:var(--panel); color:var(--txt); box-shadow:var(--sh-1)}
+.seg button:active{transform:scale(.97)}
+
+.chips{display:flex; gap:7px; overflow-x:auto; padding:2px 2px 6px; scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto; border:none; border-radius:999px; padding:8px 14px; cursor:pointer;
+  font-family:ui-monospace,monospace; font-size:12px; font-weight:500;
+  background:var(--panel2); color:var(--dim);
+  transition:background .22s var(--ease), color .22s var(--ease), transform .12s var(--ease)}
+.chip:active{transform:scale(.95)}
+.chip.on{background:linear-gradient(180deg,#fbbf24,#f59e0b); color:#3d2808;
+  box-shadow:0 1px 2px rgba(180,83,9,.2), 0 6px 14px -6px rgba(245,158,11,.55)}
+.chip:disabled{opacity:.45; box-shadow:none}
+
 .rail{display:flex; align-items:flex-end; gap:5px; margin:14px 0 4px}
 .drawer{width:30px}
-.drawer .box{height:40px; border:1px solid var(--line); border-radius:6px;
-  background:var(--panel); position:relative; overflow:hidden}
-.drawer .fill{position:absolute; left:0; right:0; bottom:0; background:rgba(245,158,11,.5); transition:height .4s}
+.drawer .box{height:44px; border:1px solid var(--line); border-radius:9px;
+  background:var(--panel); position:relative; overflow:hidden; box-shadow:var(--sh-1)}
+.drawer .fill{position:absolute; left:0; right:0; bottom:0; border-radius:8px 8px 0 0;
+  background:linear-gradient(180deg,#fcd34d,#f59e0b); transition:height .45s var(--ease)}
 .drawer .n{display:block; text-align:center; font-family:ui-monospace,monospace;
-  font-size:10px; color:var(--faint); margin-top:3px}
-.drawer.new .box{border-style:dashed; background:transparent}
-.sep{width:1px; height:40px; background:var(--panel2); margin:0 4px}
-.meta{font-family:ui-monospace,monospace; font-size:11px; color:var(--faint); margin:12px 0 8px}
-.flip{perspective:1200px; height:230px; margin-top:6px}
-.flip .inner{position:relative; width:100%; height:100%; transition:transform .45s; transform-style:preserve-3d; cursor:pointer}
+  font-size:10px; color:var(--faint); margin-top:4px}
+.drawer.new .box{border-style:dashed; background:transparent; box-shadow:none}
+.sep{width:1px; height:44px; background:var(--panel2); margin:0 4px}
+.meta{font-family:ui-monospace,monospace; font-size:10.5px; letter-spacing:.06em;
+  color:var(--faint); margin:14px 0 8px; text-transform:uppercase}
+
+.flip{perspective:1400px; height:240px; margin-top:6px}
+.flip .inner{position:relative; width:100%; height:100%;
+  transition:transform .5s var(--ease); transform-style:preserve-3d; cursor:pointer}
 .flip.turned .inner{transform:rotateY(180deg)}
 .face{position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
-  border-radius:18px; border:1px solid var(--line); background:var(--panel); padding:22px;
-  box-shadow:0 1px 3px rgba(28,25,23,.08)}
-.face.back{transform:rotateY(180deg); border-color:rgba(245,158,11,.5)}
-.word{font-family:Georgia,serif; font-size:34px; text-align:center; line-height:1.2; color:#1c1917}
+  border-radius:var(--r-xl); border:1px solid rgba(28,25,23,.07);
+  background:linear-gradient(168deg,#ffffff 0%,#fdfcfa 100%); padding:24px;
+  box-shadow:var(--sh-2)}
+.face.back{transform:rotateY(180deg); border-color:rgba(245,158,11,.32);
+  background:linear-gradient(168deg,#fffdf5 0%,#fef3c7 100%)}
+.word{font-family:Georgia,serif; font-size:35px; text-align:center; line-height:1.18;
+  letter-spacing:-.015em; color:var(--txt)}
 .face.back .word{font-size:28px; color:var(--amber2)}
-.hint{position:absolute; bottom:12px; font-family:ui-monospace,monospace; font-size:10px; color:var(--faint)}
-.spk{margin-top:16px; border:none; background:var(--panel2); color:var(--amber2);
-  border-radius:999px; width:46px; height:46px; font-size:20px; cursor:pointer}
-.card{background:var(--panel); border:1px solid var(--panel2); border-radius:16px; padding:16px; margin-top:12px; box-shadow:0 1px 2px rgba(28,25,23,.06)}
-.card h3{font-family:Georgia,serif; font-weight:normal; font-size:22px; margin:0; color:#1c1917}
-input[type=text], select, textarea{width:100%; background:var(--bg); border:1px solid var(--line);
-  border-radius:10px; padding:10px 12px; color:var(--txt); font-size:15px; margin-top:8px}
+.hint{position:absolute; bottom:14px; font-family:ui-monospace,monospace;
+  font-size:9.5px; letter-spacing:.08em; color:var(--faint); text-transform:uppercase}
+.spk{margin-top:18px; border:1px solid rgba(245,158,11,.3);
+  background:linear-gradient(180deg,#fffbeb,var(--amber-soft)); color:var(--amber2);
+  border-radius:999px; width:48px; height:48px; font-size:20px; cursor:pointer;
+  box-shadow:var(--sh-1); transition:transform .12s var(--ease), background .2s}
+.spk:active{transform:scale(.9)}
+
+.card{background:var(--panel); border:1px solid rgba(28,25,23,.06);
+  border-radius:var(--r-lg); padding:18px; margin-top:14px; box-shadow:var(--sh-1)}
+.card h3{font-size:17px; font-weight:600; letter-spacing:-.02em; margin:0 0 2px; color:var(--txt)}
+
+/* 16px verhindert, dass Safari beim Antippen ins Feld hineinzoomt. */
+input[type=text], select, textarea{width:100%; background:var(--panel);
+  border:1px solid var(--line); border-radius:var(--r-md); padding:13px 14px;
+  color:var(--txt); font-size:16px; margin-top:9px; -webkit-appearance:none; appearance:none;
+  font-family:inherit; transition:border-color .2s, box-shadow .2s}
+select{background-image:linear-gradient(45deg,transparent 50%,var(--faint) 50%),
+  linear-gradient(135deg,var(--faint) 50%,transparent 50%);
+  background-position:calc(100% - 19px) 50%, calc(100% - 14px) 50%;
+  background-size:5px 5px, 5px 5px; background-repeat:no-repeat; padding-right:38px}
+input[type=text]:focus, select:focus, textarea:focus{outline:none; border-color:var(--amber);
+  box-shadow:0 0 0 3px rgba(245,158,11,.16)}
 input.ok{border-color:var(--green)} input.no{border-color:var(--red)}
-.why{font-size:12px; color:var(--dim); margin:6px 0 0}
+textarea{line-height:1.5}
+
+.why{font-size:12.5px; line-height:1.5; color:var(--dim); margin:8px 0 0}
 .why b{color:var(--green); font-weight:600}
-.rules{border:1px solid rgba(245,158,11,.4); border-radius:14px; background:var(--panel); padding:14px 16px; margin-top:12px}
-.rules div{display:flex; gap:10px; font-size:14px; color:var(--dim); margin:6px 0}
-.rules span{color:var(--amber2); font-family:ui-monospace,monospace}
-.list button{display:flex; width:100%; justify-content:space-between; align-items:center;
-  background:var(--panel); border:1px solid var(--panel2); border-radius:14px;
-  padding:14px 16px; margin-top:10px; color:var(--txt); cursor:pointer}
-.list .t{font-family:Georgia,serif; font-size:17px}
-.banner{background:#ffe4e6; color:#9f1239; font-size:12px; padding:8px 16px; border:none; width:100%; text-align:left; cursor:pointer}
-.msg{border-radius:16px; padding:11px 14px; margin-top:10px; max-width:85%; font-size:15px; line-height:1.4}
-.msg.me{background:var(--amber); color:#1c1917; margin-left:auto; border-bottom-right-radius:4px}
-.msg.ol{background:var(--panel); border:1px solid var(--panel2); border-bottom-left-radius:4px}
-.corr{border-left:2px solid var(--red); background:var(--panel); font-size:12px;
-  color:var(--dim); padding:7px 10px; border-radius:10px; margin-top:10px; max-width:85%}
-.target{font-family:Georgia,serif; font-size:23px; line-height:1.4; color:#1c1917}
-.target .hit{color:var(--green)} .target .miss{color:var(--red); text-decoration:underline}
-.score{font-family:Georgia,serif; font-size:40px; color:var(--amber2); text-align:center}
-.overlay{position:fixed; inset:0; background:rgba(250,250,249,.98); z-index:20; display:none;
-  flex-direction:column; padding:16px; max-width:520px; margin:0 auto}
+.rules{border:1px solid rgba(245,158,11,.3); border-radius:var(--r-lg);
+  background:linear-gradient(170deg,#fffdf6,#fffbeb); padding:15px 17px; margin-top:14px}
+.rules div{display:flex; gap:11px; font-size:14px; line-height:1.45; color:var(--dim); margin:7px 0}
+.rules span{color:var(--amber2); font-family:ui-monospace,monospace; font-weight:600; flex:0 0 auto}
+
+.list button{display:flex; width:100%; justify-content:space-between; align-items:center; gap:12px;
+  background:var(--panel); border:1px solid rgba(28,25,23,.06); border-radius:var(--r-lg);
+  padding:15px 17px; margin-top:10px; color:var(--txt); cursor:pointer; text-align:left;
+  box-shadow:var(--sh-1); transition:transform .12s var(--ease), box-shadow .22s var(--ease)}
+.list button:active{transform:scale(.99); box-shadow:none}
+.list .t{font-size:16px; font-weight:600; letter-spacing:-.015em}
+.list button .t{display:block; margin-bottom:3px}
+
+.banner{background:linear-gradient(180deg,#fff1f2,#ffe4e6); color:#9f1239; font-size:12px;
+  line-height:1.45; padding:10px 16px; border:none; width:100%; text-align:left; cursor:pointer}
+
+.msg{border-radius:var(--r-lg); padding:12px 15px; margin-top:10px; max-width:86%;
+  font-size:15px; line-height:1.45}
+.msg.me{background:linear-gradient(180deg,#fbbf24,#f59e0b); color:#3d2808;
+  margin-left:auto; border-bottom-right-radius:6px;
+  box-shadow:0 6px 16px -8px rgba(245,158,11,.6)}
+.msg.ol{background:var(--panel); border:1px solid rgba(28,25,23,.06);
+  border-bottom-left-radius:6px; box-shadow:var(--sh-1)}
+.corr{border-left:3px solid var(--red); background:var(--panel); font-size:12.5px; line-height:1.5;
+  color:var(--dim); padding:9px 12px; border-radius:var(--r-sm); margin-top:10px; max-width:86%;
+  box-shadow:var(--sh-1)}
+
+.target{font-family:Georgia,serif; font-size:23px; line-height:1.45; letter-spacing:-.01em; color:var(--txt)}
+.target .hit{color:var(--green)}
+.target .miss{color:var(--red); text-decoration:underline; text-decoration-thickness:1.5px;
+  text-underline-offset:3px}
+.score{font-family:Georgia,serif; font-size:42px; letter-spacing:-.02em; color:var(--amber2); text-align:center}
+
+.overlay{position:fixed; inset:0; background:rgba(250,249,247,.94); z-index:20; display:none;
+  -webkit-backdrop-filter:blur(22px); backdrop-filter:blur(22px);
+  flex-direction:column; max-width:520px; margin:0 auto;
+  padding:calc(env(safe-area-inset-top, 0px) + 16px) 16px calc(env(safe-area-inset-bottom, 0px) + 16px)}
 .overlay.show{display:flex}
-.overlay .body{flex:1; overflow-y:auto}
-.x{background:var(--panel2); border:none; color:var(--txt); border-radius:10px;
-  width:36px; height:36px; font-size:16px; cursor:pointer}
-.small{font-size:13px; color:var(--dim); margin:14px 0 4px}
+.overlay .body{flex:1; overflow-y:auto; -webkit-overflow-scrolling:touch}
+.x{background:var(--panel2); border:none; color:var(--txt); border-radius:var(--r-sm);
+  width:38px; height:38px; font-size:16px; cursor:pointer; flex:0 0 auto;
+  transition:transform .12s var(--ease), background .2s}
+.x:active{transform:scale(.92)}
+.small{font-size:13px; line-height:1.5; color:var(--dim); margin:16px 0 4px}
 .mono{font-family:ui-monospace,monospace; font-size:10px; color:var(--dim)}
 .center{text-align:center}
 label.small{display:block}
+
+.kv{display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+  font-size:14px; color:var(--dim); margin:10px 0 4px}
+.kv b{font-family:ui-monospace,monospace; font-size:13px; color:var(--txt); flex:0 0 auto}
+.bar{height:7px; background:var(--panel2); border-radius:999px; overflow:hidden; margin-bottom:7px}
+.bar i{display:block; height:100%; border-radius:999px; transition:width .5s var(--ease)}
+.wordrow{display:flex; justify-content:space-between; align-items:center; gap:10px;
+  border-top:1px solid var(--panel2); padding:10px 0; font-size:14px; color:var(--dim)}
+.wordrow b{color:var(--txt); font-weight:600}
+.wordrow i{font-style:normal; color:var(--faint)}
+.leg{display:flex; flex-wrap:wrap; gap:11px; margin-top:10px;
+  font-family:ui-monospace,monospace; font-size:10px; color:var(--faint)}
+.leg span{display:flex; align-items:center; gap:5px}
+.leg em{width:9px; height:9px; border-radius:3px; display:block}
+
+:focus-visible{outline:2px solid var(--amber); outline-offset:2px}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01ms !important; transition-duration:.01ms !important}
+}
 </style>
 </head>
 <body>
@@ -149,7 +262,7 @@ label.small{display:block}
 <script>
 "use strict";
 /* ================= Daten ================= */
-const WORDS = `be|sein|A1
+const WORDS_CORE = `be|sein|A1
 have|haben|A1
 do|tun, machen|A1
 say|sagen|A1
@@ -554,8 +667,948 @@ tentative|vorläufig|C1
 undermine|untergraben|C1
 unprecedented|beispiellos|C1
 warrant|rechtfertigen|C1
-yield|ergeben, Ertrag|C1`.split("\n").map(l=>{const p=l.split("|");return{en:p[0],de:p[1],level:p[2]};});
+yield|ergeben, Ertrag|C1`;
+
+/* Zweiter Block. Bewusst getrennt, damit der Startbestand oben unangetastet
+   bleibt und Nachschub unten einfach angehängt werden kann. */
+const WORDS_MORE = `morning|Morgen|A1
+evening|Abend|A1
+afternoon|Nachmittag|A1
+today|heute|A1
+tomorrow|morgen|A1
+yesterday|gestern|A1
+hour|Stunde|A1
+minute|Minute|A1
+table|Tisch|A1
+chair|Stuhl|A1
+bed|Bett|A1
+window|Fenster|A1
+floor|Boden, Stockwerk|A1
+wall|Wand|A1
+kitchen|Küche|A1
+bathroom|Badezimmer|A1
+garden|Garten|A1
+shop|Laden|A1
+bread|Brot|A1
+milk|Milch|A1
+coffee|Kaffee|A1
+tea|Tee|A1
+apple|Apfel|A1
+egg|Ei|A1
+meat|Fleisch|A1
+fish|Fisch|A1
+cheese|Käse|A1
+fruit|Obst|A1
+vegetable|Gemüse|A1
+breakfast|Frühstück|A1
+lunch|Mittagessen|A1
+dinner|Abendessen|A1
+plate|Teller|A1
+glass|Glas|A1
+cup|Tasse|A1
+knife|Messer|A1
+spoon|Löffel|A1
+fork|Gabel|A1
+clothes|Kleidung|A1
+shoe|Schuh|A1
+shirt|Hemd|A1
+coat|Mantel|A1
+bag|Tasche|A1
+key|Schlüssel|A1
+phone|Telefon|A1
+computer|Computer|A1
+letter|Brief, Buchstabe|A1
+paper|Papier|A1
+pen|Stift|A1
+picture|Bild|A1
+music|Musik|A1
+film|Film|A1
+game|Spiel|A1
+sport|Sport|A1
+body|Körper|A1
+head|Kopf|A1
+eye|Auge|A1
+ear|Ohr|A1
+mouth|Mund|A1
+nose|Nase|A1
+arm|Arm|A1
+leg|Bein|A1
+foot|Fuß|A1
+hair|Haar|A1
+face|Gesicht|A1
+heart|Herz|A1
+doctor|Arzt|A1
+teacher|Lehrer|A1
+student|Schüler, Student|A1
+hospital|Krankenhaus|A1
+train|Zug|A1
+bus|Bus|A1
+plane|Flugzeug|A1
+bike|Fahrrad|A1
+road|Straße|A1
+bridge|Brücke|A1
+tree|Baum|A1
+flower|Blume|A1
+animal|Tier|A1
+dog|Hund|A1
+cat|Katze|A1
+bird|Vogel|A1
+sun|Sonne|A1
+moon|Mond|A1
+rain|Regen|A1
+snow|Schnee|A1
+wind|Wind|A1
+sky|Himmel|A1
+sea|Meer|A1
+mountain|Berg|A1
+river|Fluss|A1
+fire|Feuer|A1
+colour|Farbe|A1
+red|rot|A1
+blue|blau|A1
+green|grün|A1
+black|schwarz|A1
+white|weiß|A1
+yellow|gelb|A1
+warm|warm|A1
+cold|kalt|A1
+hot|heiß|A1
+full|voll|A1
+empty|leer|A1
+dirty|schmutzig|A1
+nice|nett, schön|A1
+beautiful|schön|A1
+strong|stark|A1
+weak|schwach|A1
+heavy|schwer|A1
+dark|dunkel|A1
+loud|laut|A1
+quiet|leise, ruhig|A1
+tired|müde|A1
+hungry|hungrig|A1
+thirsty|durstig|A1
+ill|krank|A1
+ready|bereit|A1
+late|spät|A1
+near|nah|A1
+far|weit|A1
+close|schließen|A1
+sell|verkaufen|A1
+cost|kosten|A1
+carry|tragen|A1
+catch|fangen|A1
+throw|werfen|A1
+push|drücken, schieben|A1
+pull|ziehen|A1
+wash|waschen|A1
+wear|anhaben, tragen|A1
+cut|schneiden|A1
+break|brechen, kaputtgehen|A1
+hold|halten|A1
+smile|lächeln|A1
+laugh|lachen|A1
+cry|weinen|A1
+dance|tanzen|A1
+sing|singen|A1
+swim|schwimmen|A1
+jump|springen|A1
+fly|fliegen|A1
+climb|klettern|A1
+count|zählen|A1
+draw|zeichnen|A1
+paint|malen|A1
+visit|besuchen|A1
+invite|einladen|A1
+thank|danken|A1
+love|lieben|A1
+hate|hassen|A1
+hope|hoffen|A1
+wish|wünschen|A1
+forget|vergessen|A1
+listen|zuhören|A1
+teach|unterrichten|A1
+study|lernen, studieren|A1
+practise|üben|A1
+spell|buchstabieren|A1
+weekend|Wochenende|A2
+birthday|Geburtstag|A2
+ticket|Fahrkarte, Eintrittskarte|A2
+airport|Flughafen|A2
+hotel|Hotel|A2
+restaurant|Restaurant|A2
+menu|Speisekarte|A2
+waiter|Kellner|A2
+bank|Bank|A2
+supermarket|Supermarkt|A2
+shopping|Einkaufen|A2
+size|Größe|A2
+gift|Geschenk|A2
+party|Party, Feier|A2
+guest|Gast|A2
+neighbour|Nachbar|A2
+colleague|Kollege|A2
+boss|Chef|A2
+salary|Gehalt|A2
+contract|Vertrag|A2
+appointment|Termin|A2
+schedule|Zeitplan|A2
+machine|Maschine|A2
+tool|Werkzeug|A2
+factory|Fabrik|A2
+warehouse|Lager|A2
+delivery|Lieferung|A2
+invoice|Rechnung|A2
+payment|Zahlung|A2
+discount|Rabatt|A2
+supplier|Lieferant|A2
+department|Abteilung|A2
+manager|Leiter, Manager|A2
+training|Schulung|A2
+course|Kurs|A2
+lesson|Unterrichtsstunde|A2
+exam|Prüfung|A2
+mistake|Fehler|A2
+subject|Fach, Thema|A2
+university|Universität|A2
+library|Bibliothek|A2
+museum|Museum|A2
+theatre|Theater|A2
+concert|Konzert|A2
+newspaper|Zeitung|A2
+magazine|Zeitschrift|A2
+channel|Kanal, Sender|A2
+message|Nachricht|A2
+email|E-Mail|A2
+website|Webseite|A2
+password|Passwort|A2
+screen|Bildschirm|A2
+button|Knopf|A2
+file|Datei|A2
+folder|Ordner|A2
+printer|Drucker|A2
+battery|Batterie, Akku|A2
+cable|Kabel|A2
+engine|Motor|A2
+wheel|Rad|A2
+fuel|Kraftstoff|A2
+traffic|Verkehr|A2
+accident|Unfall|A2
+insurance|Versicherung|A2
+passport|Reisepass|A2
+luggage|Gepäck|A2
+journey|Reise|A2
+trip|Ausflug|A2
+map|Karte|A2
+direction|Richtung|A2
+corner|Ecke|A2
+entrance|Eingang|A2
+exit|Ausgang|A2
+lift|Aufzug|A2
+stairs|Treppe|A2
+roof|Dach|A2
+garage|Garage|A2
+furniture|Möbel|A2
+towel|Handtuch|A2
+soap|Seife|A2
+medicine|Medikament|A2
+pain|Schmerz|A2
+fever|Fieber|A2
+cough|Husten|A2
+injury|Verletzung|A2
+exercise|Bewegung, Übung|A2
+diet|Ernährung|A2
+weight|Gewicht|A2
+height|Höhe|A2
+age|Alter|A2
+marriage|Ehe|A2
+wedding|Hochzeit|A2
+husband|Ehemann|A2
+wife|Ehefrau|A2
+son|Sohn|A2
+daughter|Tochter|A2
+brother|Bruder|A2
+sister|Schwester|A2
+parent|Elternteil|A2
+grandmother|Großmutter|A2
+grandfather|Großvater|A2
+belong|gehören|A2
+celebrate|feiern|A2
+complete|abschließen|A2
+continue|fortfahren|A2
+copy|kopieren|A2
+create|erschaffen|A2
+cross|überqueren|A2
+destroy|zerstören|A2
+discover|entdecken|A2
+divide|teilen|A2
+enjoy|genießen|A2
+enter|betreten|A2
+escape|entkommen|A2
+exist|existieren|A2
+fill|füllen|A2
+finish|beenden|A2
+fit|passen|A2
+guess|raten|A2
+hang|hängen|A2
+hide|verstecken|A2
+hurry|sich beeilen|A2
+introduce|vorstellen|A2
+join|beitreten|A2
+knock|klopfen|A2
+lock|abschließen|A2
+mix|mischen|A2
+organise|organisieren|A2
+pack|packen|A2
+pass|bestehen, vorbeigehen|A2
+plan|planen|A2
+pick|auswählen, pflücken|A2
+pour|gießen|A2
+prevent|verhindern|A2
+print|drucken|A2
+promise|versprechen|A2
+protect|schützen|A2
+prove|beweisen|A2
+raise|erhöhen, heben|A2
+reach|erreichen|A2
+realise|erkennen, begreifen|A2
+recommend|empfehlen|A2
+relax|entspannen|A2
+rent|mieten|A2
+repair|reparieren|A2
+rest|sich ausruhen|A2
+ring|klingeln|A2
+search|suchen|A2
+select|auswählen|A2
+serve|bedienen, servieren|A2
+shout|schreien|A2
+shut|schließen|A2
+sign|unterschreiben|A2
+smell|riechen|A2
+sound|klingen|A2
+spend|ausgeben, verbringen|A2
+spread|verbreiten|A2
+steal|stehlen|A2
+succeed|gelingen|A2
+taste|schmecken|A2
+touch|berühren|A2
+treat|behandeln|A2
+trust|vertrauen|A2
+warn|warnen|A2
+waste|verschwenden|A2
+worry|sich sorgen|A2
+angry|wütend|A2
+afraid|ängstlich|A2
+boring|langweilig|A2
+busy|beschäftigt|A2
+calm|ruhig|A2
+careful|vorsichtig|A2
+clear|klar|A2
+comfortable|bequem|A2
+correct|richtig|A2
+crazy|verrückt|A2
+delicious|köstlich|A2
+excited|aufgeregt|A2
+famous|berühmt|A2
+friendly|freundlich|A2
+funny|lustig|A2
+healthy|gesund|A2
+honest|ehrlich|A2
+interesting|interessant|A2
+kind|nett|A2
+lazy|faul|A2
+lonely|einsam|A2
+lucky|glücklich|A2
+modern|modern|A2
+natural|natürlich|A2
+nervous|nervös|A2
+normal|normal|A2
+patient|geduldig|A2
+perfect|perfekt|A2
+polite|höflich|A2
+poor|arm|A2
+popular|beliebt|A2
+proud|stolz|A2
+rich|reich|A2
+sad|traurig|A2
+serious|ernst|A2
+sharp|scharf|A2
+shy|schüchtern|A2
+smart|klug|A2
+soft|weich|A2
+strange|seltsam|A2
+terrible|schrecklich|A2
+tight|eng|A2
+ugly|hässlich|A2
+wide|breit|A2
+wonderful|wunderbar|A2
+wrong|falsch|A2
+adjust|anpassen|B1
+admit|zugeben|B1
+afford|sich leisten|B1
+announce|ankündigen|B1
+appreciate|schätzen|B1
+arrange|vereinbaren|B1
+assign|zuweisen|B1
+attach|anhängen, befestigen|B1
+attract|anziehen|B1
+blame|beschuldigen|B1
+cancel|absagen, stornieren|B1
+combine|kombinieren|B1
+commit|sich verpflichten|B1
+communicate|kommunizieren|B1
+compete|konkurrieren|B1
+concentrate|sich konzentrieren|B1
+conclude|folgern|B1
+connect|verbinden|B1
+consist|bestehen aus|B1
+contribute|beitragen|B1
+convince|überzeugen|B1
+cooperate|kooperieren|B1
+deal|umgehen mit|B1
+declare|erklären, angeben|B1
+define|definieren|B1
+deny|leugnen|B1
+design|entwerfen|B1
+distribute|verteilen|B1
+double|verdoppeln|B1
+earn|verdienen|B1
+employ|beschäftigen|B1
+examine|untersuchen|B1
+exchange|austauschen|B1
+expand|erweitern|B1
+express|ausdrücken|B1
+extend|verlängern|B1
+focus|sich konzentrieren|B1
+forbid|verbieten|B1
+gain|gewinnen, erlangen|B1
+handle|handhaben|B1
+identify|identifizieren|B1
+ignore|ignorieren|B1
+include|einschließen|B1
+inform|informieren|B1
+insist|bestehen auf|B1
+install|installieren|B1
+intend|beabsichtigen|B1
+invest|investieren|B1
+involve|beinhalten|B1
+measure|messen|B1
+operate|bedienen, betreiben|B1
+participate|teilnehmen|B1
+perform|durchführen, auftreten|B1
+persuade|überreden|B1
+predict|vorhersagen|B1
+present|präsentieren|B1
+produce|produzieren|B1
+promote|fördern, befördern|B1
+publish|veröffentlichen|B1
+recover|sich erholen|B1
+refer|verweisen|B1
+reflect|widerspiegeln|B1
+regret|bereuen|B1
+reject|ablehnen|B1
+relate|in Beziehung setzen|B1
+release|freigeben|B1
+remind|erinnern an|B1
+remove|entfernen|B1
+respond|reagieren, antworten|B1
+retire|in Rente gehen|B1
+review|überprüfen|B1
+reward|belohnen|B1
+separate|trennen|B1
+settle|regeln, sich niederlassen|B1
+struggle|sich abmühen|B1
+submit|einreichen|B1
+survive|überleben|B1
+transfer|übertragen|B1
+transport|transportieren|B1
+update|aktualisieren|B1
+upgrade|aufrüsten|B1
+urge|drängen|B1
+verify|überprüfen|B1
+ability|Fähigkeit|B1
+access|Zugang|B1
+account|Konto|B1
+activity|Aktivität|B1
+advice|Rat|B1
+aim|Ziel|B1
+approval|Genehmigung|B1
+argument|Argument, Streit|B1
+arrangement|Vereinbarung|B1
+aspect|Aspekt|B1
+attention|Aufmerksamkeit|B1
+attitude|Einstellung|B1
+authority|Behörde|B1
+average|Durchschnitt|B1
+background|Hintergrund|B1
+balance|Gleichgewicht, Saldo|B1
+behaviour|Verhalten|B1
+belief|Überzeugung|B1
+capacity|Kapazität|B1
+category|Kategorie|B1
+cause|Ursache|B1
+challenge|Herausforderung|B1
+character|Charakter|B1
+choice|Wahl|B1
+comment|Kommentar|B1
+community|Gemeinschaft|B1
+comparison|Vergleich|B1
+complaint|Beschwerde|B1
+confidence|Vertrauen|B1
+connection|Verbindung|B1
+content|Inhalt|B1
+contribution|Beitrag|B1
+damage|Schaden|B1
+data|Daten|B1
+debt|Schulden|B1
+degree|Grad, Abschluss|B1
+detail|Detail|B1
+device|Gerät|B1
+difference|Unterschied|B1
+distance|Entfernung|B1
+duty|Pflicht|B1
+effect|Wirkung|B1
+environment|Umwelt|B1
+equipment|Ausrüstung|B1
+evidence|Beweis|B1
+expert|Experte|B1
+feature|Merkmal|B1
+figure|Zahl, Gestalt|B1
+function|Funktion|B1
+future|Zukunft|B1
+impact|Auswirkung|B1
+improvement|Verbesserung|B1
+income|Einkommen|B1
+industry|Industrie|B1
+information|Information|B1
+instruction|Anweisung|B1
+interest|Interesse, Zinsen|B1
+investment|Investition|B1
+lack|Mangel|B1
+majority|Mehrheit|B1
+management|Leitung|B1
+material|Material|B1
+method|Methode|B1
+nature|Natur|B1
+option|Option|B1
+origin|Ursprung|B1
+owner|Besitzer|B1
+pattern|Muster|B1
+percentage|Prozentsatz|B1
+population|Bevölkerung|B1
+position|Position|B1
+possibility|Möglichkeit|B1
+profit|Gewinn|B1
+progress|Fortschritt|B1
+proof|Nachweis|B1
+proposal|Vorschlag|B1
+protection|Schutz|B1
+range|Bereich, Auswahl|B1
+rate|Rate, Satz|B1
+relationship|Beziehung|B1
+research|Forschung|B1
+resource|Ressource|B1
+responsibility|Verantwortung|B1
+role|Rolle|B1
+rule|Regel|B1
+sample|Probe, Muster|B1
+season|Jahreszeit|B1
+section|Abschnitt|B1
+security|Sicherheit|B1
+selection|Auswahl|B1
+sense|Sinn|B1
+shape|Form|B1
+situation|Situation|B1
+society|Gesellschaft|B1
+space|Raum|B1
+speed|Geschwindigkeit|B1
+staff|Personal|B1
+standard|Standard|B1
+statement|Aussage|B1
+step|Schritt|B1
+strength|Stärke|B1
+structure|Struktur|B1
+style|Stil|B1
+supply|Versorgung|B1
+surface|Oberfläche|B1
+technology|Technologie|B1
+term|Begriff, Frist|B1
+theory|Theorie|B1
+topic|Thema|B1
+treatment|Behandlung|B1
+type|Typ, Art|B1
+unit|Einheit|B1
+version|Version|B1
+view|Ansicht|B1
+weakness|Schwäche|B1
+active|aktiv|B1
+additional|zusätzlich|B1
+annual|jährlich|B1
+appropriate|angemessen|B1
+available|verfügbar|B1
+basic|grundlegend|B1
+brief|kurz|B1
+capable|fähig|B1
+central|zentral|B1
+certain|bestimmt, sicher|B1
+competitive|wettbewerbsfähig|B1
+confident|zuversichtlich|B1
+constant|ständig|B1
+convenient|praktisch, günstig|B1
+detailed|detailliert|B1
+direct|direkt|B1
+effective|wirksam|B1
+equal|gleich, gleichwertig|B1
+exact|exakt|B1
+familiar|vertraut|B1
+final|endgültig|B1
+flexible|flexibel|B1
+general|allgemein|B1
+immediate|sofortig|B1
+independent|unabhängig|B1
+individual|individuell|B1
+initial|anfänglich|B1
+legal|rechtlich|B1
+limited|begrenzt|B1
+local|örtlich|B1
+main|Haupt-|B1
+major|bedeutend|B1
+minor|geringfügig|B1
+national|national|B1
+official|offiziell|B1
+original|ursprünglich|B1
+personal|persönlich|B1
+physical|körperlich|B1
+potential|potenziell|B1
+practical|praktisch|B1
+previous|vorherig|B1
+private|privat|B1
+professional|beruflich|B1
+public|öffentlich|B1
+rare|selten|B1
+recent|kürzlich|B1
+regular|regelmäßig|B1
+relevant|relevant|B1
+severe|schwerwiegend|B1
+simple|einfach|B1
+single|einzeln|B1
+social|sozial|B1
+stable|stabil|B1
+strict|streng|B1
+suitable|geeignet|B1
+temporary|vorübergehend|B1
+total|gesamt|B1
+typical|typisch|B1
+unique|einzigartig|B1
+unusual|ungewöhnlich|B1
+urgent|dringend|B1
+valuable|wertvoll|B1
+various|verschiedene|B1
+whole|ganz|B1
+abandon|aufgeben, verlassen|B2
+accompany|begleiten|B2
+accumulate|ansammeln|B2
+administer|verwalten|B2
+advocate|befürworten|B2
+alter|verändern|B2
+amend|ändern, ergänzen|B2
+assemble|zusammenbauen|B2
+assert|behaupten|B2
+attribute|zuschreiben|B2
+authorise|genehmigen|B2
+cease|aufhören|B2
+compensate|ausgleichen|B2
+compile|zusammenstellen|B2
+comprise|umfassen|B2
+consolidate|festigen|B2
+constitute|darstellen, bilden|B2
+convert|umwandeln|B2
+coordinate|koordinieren|B2
+correspond|entsprechen|B2
+delegate|delegieren|B2
+demonstrate|vorführen|B2
+deploy|einsetzen|B2
+derive|ableiten|B2
+designate|bestimmen|B2
+detect|erkennen|B2
+deviate|abweichen|B2
+devise|ersinnen|B2
+differentiate|unterscheiden|B2
+disclose|offenlegen|B2
+dismiss|entlassen, abtun|B2
+dispose|entsorgen|B2
+disrupt|stören|B2
+diversify|diversifizieren|B2
+elaborate|näher ausführen|B2
+eliminate|beseitigen|B2
+embrace|annehmen, umarmen|B2
+emerge|auftauchen|B2
+enforce|durchsetzen|B2
+entitle|berechtigen|B2
+evolve|sich entwickeln|B2
+exclude|ausschließen|B2
+execute|ausführen|B2
+exploit|ausnutzen|B2
+formulate|formulieren|B2
+foster|fördern|B2
+govern|steuern, regieren|B2
+illustrate|veranschaulichen|B2
+impose|auferlegen|B2
+incorporate|einbeziehen|B2
+incur|sich zuziehen|B2
+infer|folgern|B2
+inhibit|hemmen|B2
+innovate|erneuern|B2
+inspect|prüfen|B2
+interpret|auslegen|B2
+intervene|eingreifen|B2
+investigate|untersuchen|B2
+isolate|isolieren|B2
+modify|abändern|B2
+nominate|nominieren|B2
+oblige|verpflichten|B2
+optimise|optimieren|B2
+originate|entstehen|B2
+outline|umreißen|B2
+overcome|überwinden|B2
+oversee|beaufsichtigen|B2
+persist|fortbestehen|B2
+postpone|verschieben|B2
+preserve|bewahren|B2
+prioritise|priorisieren|B2
+prohibit|untersagen|B2
+prompt|veranlassen|B2
+quantify|beziffern|B2
+reinforce|verstärken|B2
+render|erbringen, machen zu|B2
+resolve|lösen, beschließen|B2
+restore|wiederherstellen|B2
+restrict|einschränken|B2
+retain|behalten|B2
+retrieve|abrufen|B2
+revise|überarbeiten|B2
+simulate|simulieren|B2
+specify|angeben|B2
+stimulate|anregen|B2
+supervise|beaufsichtigen|B2
+sustain|aufrechterhalten|B2
+terminate|beenden|B2
+transform|umwandeln|B2
+undergo|durchlaufen|B2
+undertake|unternehmen|B2
+utilise|nutzen|B2
+validate|bestätigen|B2
+withdraw|zurückziehen|B2
+accountability|Rechenschaftspflicht|B2
+acquisition|Übernahme, Erwerb|B2
+allocation|Zuteilung|B2
+analysis|Analyse|B2
+asset|Vermögenswert|B2
+audit|Prüfung|B2
+bias|Voreingenommenheit|B2
+bottleneck|Engpass|B2
+breakdown|Ausfall, Aufschlüsselung|B2
+compliance|Einhaltung|B2
+compromise|Kompromiss|B2
+consensus|Konsens|B2
+consequence|Folge|B2
+contingency|Eventualität|B2
+correlation|Zusammenhang|B2
+disruption|Störung|B2
+distribution|Verteilung|B2
+efficiency|Effizienz|B2
+emphasis|Betonung|B2
+exposure|Gefährdung|B2
+feedback|Rückmeldung|B2
+forecast|Prognose|B2
+hierarchy|Hierarchie|B2
+incentive|Anreiz|B2
+indicator|Kennzahl|B2
+infrastructure|Infrastruktur|B2
+initiative|Initiative|B2
+integrity|Integrität|B2
+intervention|Eingriff|B2
+inventory|Bestand|B2
+margin|Marge, Spielraum|B2
+mandate|Auftrag, Mandat|B2
+metric|Messgröße|B2
+milestone|Meilenstein|B2
+negotiation|Verhandlung|B2
+obligation|Verpflichtung|B2
+obstacle|Hindernis|B2
+perception|Wahrnehmung|B2
+pitfall|Fallstrick|B2
+premise|Prämisse|B2
+provision|Bestimmung|B2
+rationale|Begründung|B2
+recession|Rezession|B2
+reluctance|Widerwille|B2
+remainder|Rest|B2
+revenue|Umsatz|B2
+scenario|Szenario|B2
+setback|Rückschlag|B2
+subsidy|Subvention|B2
+surplus|Überschuss|B2
+takeover|Übernahme|B2
+tender|Ausschreibung|B2
+turnover|Umsatz, Fluktuation|B2
+variance|Abweichung|B2
+warranty|Garantie|B2
+workload|Arbeitspensum|B2
+abundant|reichlich|B2
+adequate|angemessen|B2
+adverse|nachteilig|B2
+arbitrary|willkürlich|B2
+coherent|schlüssig|B2
+compatible|kompatibel|B2
+competent|kompetent|B2
+concise|prägnant|B2
+conservative|vorsichtig, konservativ|B2
+credible|glaubwürdig|B2
+diverse|vielfältig|B2
+explicit|ausdrücklich|B2
+extensive|umfangreich|B2
+finite|endlich|B2
+fundamental|grundlegend|B2
+generic|generisch|B2
+imminent|bevorstehend|B2
+implicit|implizit|B2
+indispensable|unentbehrlich|B2
+marginal|geringfügig|B2
+mutual|gegenseitig|B2
+negligible|vernachlässigbar|B2
+obsolete|veraltet|B2
+optimal|optimal|B2
+persistent|hartnäckig|B2
+precise|präzise|B2
+predominant|vorherrschend|B2
+preliminary|vorläufig|B2
+profound|tiefgreifend|B2
+rigorous|streng, gründlich|B2
+scarce|knapp|B2
+stringent|streng|B2
+substantial|erheblich|B2
+transparent|transparent|B2
+versatile|vielseitig|B2
+vulnerable|verwundbar|B2
+adhere|sich halten an|C1
+advent|Aufkommen|C1
+aggregate|zusammenfassen|C1
+akin|ähnlich|C1
+allude|anspielen|C1
+amplify|verstärken|C1
+anomaly|Anomalie|C1
+apprehension|Besorgnis|C1
+ascertain|ermitteln|C1
+augment|erweitern|C1
+benchmark|Maßstab|C1
+bolster|stützen|C1
+candid|offen, freimütig|C1
+caveat|Vorbehalt|C1
+circumvent|umgehen|C1
+cohesive|zusammenhängend|C1
+commensurate|angemessen|C1
+compound|verschärfen|C1
+conducive|förderlich|C1
+confer|verleihen, beraten|C1
+conjecture|Mutmaßung|C1
+consecutive|aufeinanderfolgend|C1
+contentious|strittig|C1
+contravene|verstoßen gegen|C1
+culminate|gipfeln|C1
+curtail|beschneiden|C1
+deem|erachten|C1
+deficiency|Mangel|C1
+delineate|abgrenzen|C1
+deplete|erschöpfen|C1
+deprive|entziehen|C1
+detrimental|schädlich|C1
+deviation|Abweichung|C1
+dilemma|Dilemma|C1
+discern|erkennen|C1
+disparity|Ungleichheit|C1
+dissent|Widerspruch|C1
+divergence|Divergenz|C1
+elicit|hervorrufen|C1
+embed|einbetten|C1
+empirical|empirisch|C1
+encompass|umfassen|C1
+endorse|befürworten|C1
+equitable|gerecht|C1
+erode|aushöhlen|C1
+escalate|eskalieren|C1
+exempt|befreit|C1
+exhaustive|erschöpfend|C1
+expedite|beschleunigen|C1
+extrapolate|hochrechnen|C1
+feasibility|Machbarkeit|C1
+fluctuate|schwanken|C1
+forfeit|verwirken|C1
+formidable|gewaltig|C1
+fraught|belastet, voller|C1
+governance|Führung, Steuerung|C1
+impede|behindern|C1
+impetus|Anstoß|C1
+inception|Beginn|C1
+incremental|schrittweise|C1
+infringe|verletzen|C1
+ingrained|tief verwurzelt|C1
+instigate|anzetteln|C1
+intangible|immateriell|C1
+intrinsic|wesenseigen|C1
+judicious|umsichtig|C1
+latent|latent|C1
+lucrative|lukrativ|C1
+magnitude|Ausmaß|C1
+meticulous|akribisch|C1
+notwithstanding|ungeachtet|C1
+onerous|belastend|C1
+outset|Anfang|C1
+overarching|übergeordnet|C1
+pertinent|sachdienlich|C1
+pervasive|durchdringend|C1
+precedent|Präzedenzfall|C1
+preclude|ausschließen|C1
+predicament|Zwangslage|C1
+proliferate|sich ausbreiten|C1
+propensity|Neigung|C1
+provisional|vorläufig|C1
+prudent|umsichtig|C1
+recourse|Rückgriff|C1
+redress|Wiedergutmachung|C1
+refute|widerlegen|C1
+reiterate|wiederholen|C1
+relinquish|aufgeben|C1
+remit|Zuständigkeitsbereich|C1
+repercussion|Auswirkung|C1
+resilient|widerstandsfähig|C1
+salient|hervorstechend|C1
+sanction|Sanktion|C1
+stipulate|festlegen|C1
+subsidise|subventionieren|C1
+supersede|ablösen|C1
+tangible|greifbar|C1
+transient|flüchtig|C1
+uphold|aufrechterhalten|C1
+utmost|äußerst|C1
+vicinity|Umgebung|C1
+waive|verzichten auf|C1
+wary|vorsichtig|C1`;
+
+/* Beide Blöcke zusammenführen. Die Set-Prüfung wirft Doppler still weg —
+   so darf unten auch mal ein Wort landen, das oben schon steht. */
+const WORDS = (function(){
+  const seen=new Set(), out=[];
+  (WORDS_CORE+"\n"+WORDS_MORE).split("\n").forEach(l=>{
+    const p=l.split("|"), en=(p[0]||"").trim().toLowerCase();
+    if(!en||!p[1]||seen.has(en))return;
+    seen.add(en);
+    out.push({en:en,de:(p[1]||"").trim(),level:(p[2]||"B1").trim()});
+  });
+  return out;
+})();
 const LEVELS=["A1","A2","B1","B2","C1"];
+const BOXC=["#fde68a","#fcd34d","#fbbf24","#f59e0b","#059669"];
+const BOXLBL=["heute wieder","nach 1 Tag","nach 3 Tagen","nach 7 Tagen","nach 21 Tagen"];
 const DAY=86400000, INTERVALS=[0,0,1,3,7,21], KEY="et-standalone-v1";
 
 const GRAMMAR = [{"t": "Present Simple", "r": ["Gewohnheiten, Fakten, Stundenpläne", "he/she/it bekommt -s", "Fragen und Verneinung mit do/does"], "i": [{"q": "She ___ (work) in Munich.", "a": "works", "w": "he/she/it → Verb + s"}, {"q": "___ you like coffee? (like)", "a": "Do", "w": "Frage mit do"}, {"q": "He ___ (not/eat) meat.", "a": "doesn't eat/does not eat", "w": "Verneinung: doesn't + Grundform"}, {"q": "The train ___ (leave) at 7.", "a": "leaves", "w": "Fahrpläne: Present Simple"}, {"q": "We usually ___ (start) at nine.", "a": "start", "w": "usually = Gewohnheit"}, {"q": "Water ___ (boil) at 100 degrees.", "a": "boils", "w": "Naturgesetz = Fakt"}]}, {"t": "Present Continuous", "r": ["Passiert jetzt oder um diesen Zeitraum", "Form: to be + Verb-ing", "Nicht mit know, like, want"], "i": [{"q": "Look! It ___ (rain).", "a": "is raining/'s raining", "w": "passiert genau jetzt"}, {"q": "I ___ (write) an email right now.", "a": "am writing/'m writing", "w": "right now → Continuous"}, {"q": "They ___ (not/watch) TV at the moment.", "a": "aren't watching/are not watching", "w": "Verneinung: be + not + -ing"}, {"q": "___ she coming to the party? (be)", "a": "Is", "w": "Frage: be vor das Subjekt"}, {"q": "We ___ (meet) the customer tomorrow morning.", "a": "are meeting/'re meeting", "w": "fester Termin in naher Zukunft"}, {"q": "He can't talk, he ___ (drive).", "a": "is driving/'s driving", "w": "gerade dabei"}]}, {"t": "Past Simple", "r": ["Abgeschlossen, oft mit Zeitangabe", "Regelmäßig: Verb + -ed", "Fragen und Verneinung mit did"], "i": [{"q": "I ___ (see) him yesterday.", "a": "saw", "w": "see ist unregelmäßig"}, {"q": "She ___ (not/go) to work on Monday.", "a": "didn't go/did not go", "w": "didn't + Grundform"}, {"q": "___ you finish the report? (finish)", "a": "Did", "w": "Frage mit did"}, {"q": "We ___ (buy) a new machine last year.", "a": "bought", "w": "buy → bought"}, {"q": "He ___ (arrive) late this morning.", "a": "arrived", "w": "regelmäßig: -ed"}, {"q": "They ___ (be) very happy.", "a": "were", "w": "be: was/were"}]}, {"t": "Present Perfect", "r": ["Ergebnis zählt jetzt, Zeitpunkt egal", "Form: have/has + Partizip", "Signalwörter: just, already, yet, ever, since, for"], "i": [{"q": "I have just ___ (send) the email.", "a": "sent", "w": "send → sent"}, {"q": "She ___ (live) here since 2020.", "a": "has lived", "w": "since → Present Perfect"}, {"q": "Have you ever ___ (be) to London?", "a": "been", "w": "ever + been"}, {"q": "We ___ (not/receive) the delivery yet.", "a": "haven't received/have not received", "w": "yet in Verneinung"}, {"q": "He has already ___ (finish).", "a": "finished", "w": "already zwischen has und Partizip"}, {"q": "They ___ (know) each other for years.", "a": "have known", "w": "for + Zeitraum"}]}, {"t": "Past Perfect", "r": ["Vorvergangenheit: das Frühere von zwei Ereignissen", "Form: had + Partizip"], "i": [{"q": "The train had already ___ (leave) when I arrived.", "a": "left", "w": "zuerst weg, dann kam ich"}, {"q": "She was tired because she ___ (not/sleep).", "a": "hadn't slept/had not slept", "w": "Grund lag davor"}, {"q": "After he ___ (finish), we went home.", "a": "had finished", "w": "after + Past Perfect"}, {"q": "I realised I ___ (forget) my keys.", "a": "had forgotten", "w": "Vergessen lag davor"}, {"q": "___ they met before the conference? (have)", "a": "Had", "w": "Frage: had vor das Subjekt"}, {"q": "By 2010 the company ___ (grow) a lot.", "a": "had grown", "w": "by + Zeitpunkt"}]}, {"t": "Future: will vs going to", "r": ["will: spontan, Versprechen, Vorhersage", "going to: Plan oder sichtbare Anzeichen"], "i": [{"q": "Look at those clouds! It ___ rain. (go)", "a": "is going to/'s going to", "w": "sichtbares Anzeichen"}, {"q": "The phone's ringing. I ___ answer it. (will)", "a": "will/'ll", "w": "spontane Entscheidung"}, {"q": "We ___ visit my parents next weekend. (Plan, go)", "a": "are going to/'re going to", "w": "fester Plan"}, {"q": "I think prices ___ rise next year. (will)", "a": "will", "w": "Vorhersage mit think"}, {"q": "She ___ start a new job in May. (schon entschieden, go)", "a": "is going to/'s going to", "w": "Absicht steht fest"}, {"q": "Don't worry, I ___ help you. (will)", "a": "will/'ll", "w": "Versprechen"}]}, {"t": "Conditionals (if-clauses)", "r": ["Typ 1: if + Present, will → real", "Typ 2: if + Past, would → unwahrscheinlich", "Typ 0: if + Present, Present → immer wahr"], "i": [{"q": "If it rains, we ___ (stay) home.", "a": "will stay/'ll stay", "w": "Typ 1: will im Hauptsatz"}, {"q": "If I ___ (have) more time, I would learn French.", "a": "had", "w": "Typ 2: Past im if-Satz"}, {"q": "If you heat ice, it ___ (melt).", "a": "melts", "w": "Typ 0: immer wahr"}, {"q": "She would travel more if she ___ (be) rich.", "a": "were/was", "w": "Typ 2: were klingt besser"}, {"q": "If we hurry, we ___ (catch) the train.", "a": "will catch/'ll catch", "w": "Typ 1: realistisch"}, {"q": "What ___ you do if you won the lottery? (would)", "a": "would", "w": "Typ 2: would + Grundform"}]}, {"t": "Passive Voice", "r": ["Handlung wichtiger als Täter", "Form: be + Partizip", "Die Zeit steckt im be"], "i": [{"q": "The machine ___ (repair) yesterday.", "a": "was repaired", "w": "Past: was + Partizip"}, {"q": "These parts ___ (make) in Germany.", "a": "are made", "w": "Present: are + Partizip"}, {"q": "The report has just ___ (send).", "a": "been sent", "w": "Perfect: has been + Partizip"}, {"q": "The office ___ (clean) every evening.", "a": "is cleaned", "w": "Gewohnheit im Passiv"}, {"q": "The new model ___ (launch) next month.", "a": "will be launched", "w": "Futur: will be + Partizip"}, {"q": "My car ___ (steal) last week.", "a": "was stolen", "w": "steal → stolen"}]}, {"t": "Modal Verbs", "r": ["must / have to: Pflicht", "mustn't: verboten — don't have to: nicht nötig", "should: Rat, can/could: Fähigkeit, Bitte"], "i": [{"q": "You ___ wear a helmet here. (Pflicht)", "a": "must/have to", "w": "Sicherheitsregel"}, {"q": "___ you help me, please? (höflich)", "a": "Could/Can", "w": "höfliche Bitte"}, {"q": "You ___ smoke in here. (verboten)", "a": "mustn't/must not", "w": "Verbot"}, {"q": "You look tired. You ___ go to bed.", "a": "should", "w": "Ratschlag"}, {"q": "She ___ speak three languages.", "a": "can", "w": "Fähigkeit"}, {"q": "You ___ pay, it's free. (nicht nötig)", "a": "don't have to/do not have to", "w": "keine Pflicht"}]}, {"t": "Reported Speech", "r": ["Zeit rückt eine Stufe zurück", "will → would, can → could", "Pronomen und Zeitangaben anpassen"], "i": [{"q": "\"I am tired.\" → He said he ___ tired.", "a": "was", "w": "am → was"}, {"q": "\"We will come.\" → They said they ___ come.", "a": "would", "w": "will → would"}, {"q": "\"I like the design.\" → She said she ___ the design.", "a": "liked", "w": "Present → Past"}, {"q": "\"I have finished.\" → He said he ___ finished.", "a": "had", "w": "have → had"}, {"q": "\"I can help you.\" → She said she ___ help me.", "a": "could", "w": "can → could"}, {"q": "\"We are working on it.\" → They said they ___ working on it.", "a": "were", "w": "are → were"}]}, {"t": "Relative Clauses", "r": ["who: Personen — which: Dinge", "that: geht für beides", "whose: Besitz"], "i": [{"q": "The man ___ called you is my boss.", "a": "who/that", "w": "Person → who"}, {"q": "The machine ___ broke down is old.", "a": "which/that", "w": "Ding → which"}, {"q": "That's the woman ___ car was stolen.", "a": "whose", "w": "Besitz → whose"}, {"q": "The email ___ you sent was clear.", "a": "which/that", "w": "Ding → which/that"}, {"q": "A colleague ___ works in sales told me.", "a": "who/that", "w": "Person → who"}, {"q": "The hotel ___ we stayed in was cheap.", "a": "which/that", "w": "Ding → which/that"}]}, {"t": "Gerund vs Infinitive", "r": ["Nach enjoy, finish, avoid, mind: -ing", "Nach want, decide, plan, hope: to", "Nach like/love/hate: meist beides"], "i": [{"q": "I enjoy ___ (read) in the evening.", "a": "reading", "w": "enjoy + -ing"}, {"q": "She decided ___ (change) jobs.", "a": "to change", "w": "decide + to"}, {"q": "We avoid ___ (make) mistakes by checking twice.", "a": "making", "w": "avoid + -ing"}, {"q": "He wants ___ (learn) Python.", "a": "to learn", "w": "want + to"}, {"q": "Would you mind ___ (open) the window?", "a": "opening", "w": "mind + -ing"}, {"q": "They plan ___ (visit) us in June.", "a": "to visit", "w": "plan + to"}]}];
@@ -571,8 +1624,21 @@ const SPEAK_SEED=[
  "I've been working on this project for three weeks."];
 
 /* ================= Zustand ================= */
-let S={cards:{},extra:[],chat:[],stats:{streak:0,reviews:0,correct:0,lastDay:null}};
+function blank(){return{cards:{},extra:[],chat:[],gram:{},hist:[],
+  stats:{streak:0,reviews:0,correct:0,lastDay:null}};}
+let S=blank();
 let storageOk=true, apiKey="", provider="gemini", gModel="";
+
+/* Ältere Sicherungen kennen gram/hist nicht — hier einmal auffüllen,
+   damit sich der Rest des Codes auf die Felder verlassen kann. */
+function normalise(){
+  if(!S.cards)S.cards={};
+  if(!Array.isArray(S.extra))S.extra=[];
+  if(!Array.isArray(S.chat))S.chat=[];
+  if(!S.gram||typeof S.gram!=="object")S.gram={};
+  if(!Array.isArray(S.hist))S.hist=[];
+  if(!S.stats)S.stats={streak:0,reviews:0,correct:0,lastDay:null};
+}
 
 function loadState(){
   try{
@@ -588,6 +1654,7 @@ function loadState(){
     b.style.display="block";
     b.textContent="Kein lokaler Speicher — diese Datei ist zum Hosten gedacht (Anleitung im Chat). Tippen für Sicherung.";
   }
+  normalise();
 }
 let saveT=null;
 function save(){
@@ -599,21 +1666,45 @@ function save(){
 }
 document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="hidden"&&storageOk){try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){}}});
 
+/* Format bleibt v:1. g (Grammatik) und h (Verlauf) sind neu, aber optional —
+   ältere Leser ignorieren unbekannte Schlüssel einfach. */
 function packState(){
   const now=Date.now();
   return JSON.stringify({v:1,
     c:Object.entries(S.cards).map(([en,k])=>[en,k.box,Math.round((k.due-now)/3600000)]),
-    x:S.extra.map(w=>[w.en,w.de,w.level]),
-    s:[S.stats.streak,S.stats.reviews,S.stats.correct]});
+    x:S.extra.map(w=>[w.en,w.de,w.level,w.src==="me"?1:0]),
+    s:[S.stats.streak,S.stats.reviews,S.stats.correct],
+    g:Object.keys(S.gram).map(t=>{const i=GRAMMAR.findIndex(x=>x.t===t), g=S.gram[t];
+      return i<0?null:[i,g.runs||0,g.best||0,g.lastScore||0,Math.round(((g.last||now)-now)/3600000)];}).filter(Boolean),
+    h:S.hist.slice(-45)});
 }
 function unpackState(t){
   const o=JSON.parse(t.trim());
   if(o&&o.cards) return o;
   if(!o||!o.v) return null;
-  const now=Date.now(), cards={};
+  const now=Date.now(), cards={}, gram={};
   (o.c||[]).forEach(([en,box,h])=>{cards[en]={box:box,due:now+h*3600000};});
-  return {cards:cards, extra:(o.x||[]).map(([en,de,lv])=>({en:en,de:de,level:lv})), chat:[],
+  (o.g||[]).forEach(([i,runs,best,lastScore,hrs])=>{const topic=GRAMMAR[i];
+    if(topic)gram[topic.t]={runs:runs||0,best:best||0,lastScore:lastScore||0,last:now+(hrs||0)*3600000};});
+  return {cards:cards,
+    extra:(o.x||[]).map(([en,de,lv,me])=>({en:en,de:de,level:lv,src:me?"me":"ai"})), chat:[],
+    gram:gram, hist:Array.isArray(o.h)?o.h:[],
     stats:{streak:(o.s&&o.s[0])||0,reviews:(o.s&&o.s[1])||0,correct:(o.s&&o.s[2])||0,lastDay:null}};
+}
+
+/* Ein Datenpunkt pro Tag: Fachverteilung des Karteikastens. */
+function snapshot(){
+  const d=Math.floor(Date.now()/DAY), b=[0,0,0,0,0];
+  Object.values(S.cards).forEach(c=>{b[Math.min(4,Math.max(0,(c.box||1)-1))]++;});
+  const row=[d,b[0],b[1],b[2],b[3],b[4]];
+  const last=S.hist[S.hist.length-1];
+  if(last&&last[0]===d)S.hist[S.hist.length-1]=row; else S.hist.push(row);
+  if(S.hist.length>180)S.hist=S.hist.slice(-180);
+}
+function ago(ts){
+  if(!ts)return "";
+  const d=Math.floor((Date.now()-ts)/DAY);
+  return d<=0?"heute":(d===1?"gestern":"vor "+d+" Tagen");
 }
 
 /* ================= Helfer ================= */
@@ -732,7 +1823,18 @@ function parseJSON(text){
 /* ================= Tabs ================= */
 let TAB="vocab";
 function go(t){TAB=t;document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));render();}
+
+/* innerHTML wirft Eingabefelder weg. Deshalb VOR jedem Neuzeichnen alles,
+   was im DOM steht, zurück in den Zustand schreiben. */
+function syncForms(){
+  const e=$("nwEn"), d=$("nwDe"), l=$("nwLv"), t=$("typedbox"), c=$("chatin");
+  if(e)V.nwEn=e.value; if(d)V.nwDe=d.value; if(l)V.nwLv=l.value;
+  if(t)P.typed=t.value;
+  if(c)C.draft=c.value;
+  if(!G.checked)G.items.forEach((it,i)=>{const g=$("g"+i); if(g)G.answers[i]=g.value;});
+}
 function render(){
+  syncForms();
   headline();
   if(TAB==="vocab")renderVocab();
   else if(TAB==="grammar")renderGrammar();
@@ -741,7 +1843,8 @@ function render(){
 }
 
 /* ================= Karten ================= */
-let V={level:"A1",reverse:false,queue:[],idx:0,flipped:false,right:0,wrong:0,loading:false,err:""};
+let V={level:"A1",reverse:false,queue:[],idx:0,flipped:false,right:0,wrong:0,loading:false,err:"",
+  view:"cards",nwEn:"",nwDe:"",nwLv:"B1",msg:"",prog:"",added:0};
 function pool(){return V.level==="Alle"?allWords():allWords().filter(w=>w.level===V.level);}
 function buildRound(){
   const now=Date.now(), p=pool();
@@ -761,27 +1864,144 @@ function grade(known){
   S.stats.lastDay=today;
   if(known){V.right++;V.idx++;}
   else{V.wrong++;const q=V.queue;const c=q.splice(V.idx,1)[0];q.splice(Math.min(q.length,V.idx+3),0,c);}
-  V.flipped=false; save(); render();
+  V.flipped=false; snapshot(); save(); render();
 }
-async function loadMore(){
-  V.loading=true;V.err="";render();
-  try{
-    const lv=V.level==="Alle"?"B1":V.level;
-    const known=allWords().filter(w=>w.level===lv).map(w=>w.en);
-    const txt=await askClaude([{role:"user",content:"Level "+lv+". Bereits vorhanden: "+known.join(", ")+". Gib 20 NEUE englische Wörter dieses Levels (die nächsthäufigsten, keine aus der Liste)."}],
-      'Vokabeln für einen deutschsprachigen Lerner. Antworte NUR mit JSON-Array: [{"en":"word","de":"Übersetzung","level":"'+lv+'"}]. Übersetzung max 3 Wörter.');
-    const have=new Set(allWords().map(w=>w.en));
-    parseJSON(txt).forEach(w=>{if(w&&w.en&&w.de&&!have.has(String(w.en).toLowerCase()))
-      S.extra.push({en:String(w.en).toLowerCase(),de:String(w.de),level:lv});});
-    save();
-  }catch(e){V.err=e.message;}
-  V.loading=false;buildRound();render();
+
+/* Nachladen in Runden zu 20. Die Liste der bekannten Wörter wird gekappt,
+   sonst wächst der Prompt mit dem Bestand ins Absurde. */
+async function loadMore(n){
+  const want=n||20, rounds=Math.max(1,Math.ceil(want/20));
+  V.loading=true;V.err="";V.added=0;V.prog="";render();
+  for(let r=0;r<rounds;r++){
+    V.prog=(r+1)+" / "+rounds;render();
+    try{
+      const lv=V.level==="Alle"?"B1":V.level;
+      const have=new Set(allWords().map(w=>w.en));
+      const known=allWords().filter(w=>w.level===lv).map(w=>w.en).slice(-300);
+      const txt=await askClaude([{role:"user",content:"Level "+lv+". Bereits vorhanden: "+known.join(", ")+". Gib 20 NEUE englische Wörter dieses Levels (die nächsthäufigsten, keine aus der Liste)."}],
+        'Vokabeln für einen deutschsprachigen Lerner. Antworte NUR mit JSON-Array: [{"en":"word","de":"Übersetzung","level":"'+lv+'"}]. Übersetzung max 3 Wörter.');
+      let k=0;
+      parseJSON(txt).forEach(w=>{
+        const en=w&&w.en?String(w.en).toLowerCase().trim():"";
+        if(en&&w.de&&!have.has(en)){S.extra.push({en:en,de:String(w.de).trim(),level:lv,src:"ai"});have.add(en);k++;}
+      });
+      V.added+=k; save();
+      if(!k)break;
+    }catch(e){V.err=e.message;break;}
+  }
+  V.loading=false;V.prog="";buildRound();render();
+}
+
+function addWord(){
+  syncForms();
+  const en=String(V.nwEn||"").trim().toLowerCase(), de=String(V.nwDe||"").trim(), lv=V.nwLv||"B1";
+  if(!en||!de){V.msg="Bitte englisches und deutsches Wort eintragen.";render();return;}
+  if(allWords().some(w=>w.en===en)){V.msg="„"+en+"“ liegt schon im Kasten.";render();return;}
+  S.extra.push({en:en,de:de,level:lv,src:"me"});
+  V.nwEn="";V.nwDe="";V.msg="„"+en+"“ hinzugefügt.";
+  /* Auch im DOM leeren — sonst liest syncForms beim Neuzeichnen die alten Werte zurück. */
+  if($("nwEn"))$("nwEn").value=""; if($("nwDe"))$("nwDe").value="";
+  save();buildRound();render();
+}
+function delWord(en){
+  S.extra=S.extra.filter(w=>w.en!==en);
+  delete S.cards[en];
+  V.queue=V.queue.filter(w=>w.en!==en);
+  if(V.idx>V.queue.length)V.idx=V.queue.length;
+  V.msg="„"+en+"“ gelöscht.";
+  snapshot();save();render();
+}
+
+function statsHtml(){
+  const total=allWords().length, counts=[0,0,0,0,0];
+  Object.values(S.cards).forEach(c=>{counts[Math.min(4,Math.max(0,(c.box||1)-1))]++;});
+  const seen=counts.reduce((a,b)=>a+b,0);
+  const acc=S.stats.reviews?Math.round(S.stats.correct/S.stats.reviews*100):0;
+  const due=Object.values(S.cards).filter(c=>c.due<=Date.now()).length;
+  const kv=(a,b)=>'<div class="kv"><span>'+a+'</span><b>'+b+'</b></div>';
+  let h='<div class="card"><h3>Überblick</h3>';
+  h+=kv("Wörter insgesamt",total);
+  h+=kv("schon angefangen",seen);
+  h+=kv("noch nie gesehen",total-seen);
+  h+=kv("jetzt fällig",due);
+  h+=kv("Wiederholungen",S.stats.reviews);
+  h+=kv("Trefferquote",acc+" %");
+  h+=kv("Serie",S.stats.streak+" Tage");
+  h+='</div>';
+
+  h+='<div class="card"><h3>Fächer</h3>';
+  counts.forEach((c,i)=>{
+    h+='<div class="kv"><span>Fach '+(i+1)+' · '+BOXLBL[i]+'</span><b>'+c+'</b></div>';
+    h+='<div class="bar"><i style="width:'+(seen?Math.round(c/seen*100):0)+'%;background:'+BOXC[i]+'"></i></div>';
+  });
+  h+='</div>';
+
+  h+='<div class="card"><h3>Verlauf</h3>';
+  const H=S.hist.slice(-30);
+  if(H.length<2){
+    h+='<p class="why">Ein Punkt pro Übungstag. Ab dem zweiten Tag wächst hier die Kurve.</p>';
+  }else{
+    const W=320, HT=124, pad=10, bot=HT-16, top=8;
+    const max=Math.max(1,...H.map(r=>r[1]+r[2]+r[3]+r[4]+r[5]));
+    const step=(W-pad*2)/H.length, bw=Math.max(2.5,step-2);
+    let g="";
+    H.forEach((r,i)=>{
+      const x=pad+i*step; let y=bot;
+      for(let b=5;b>=1;b--){
+        const hgt=r[b]/max*(bot-top);
+        if(hgt<=0.2)continue;
+        y-=hgt;
+        g+='<rect x="'+x.toFixed(1)+'" y="'+y.toFixed(1)+'" width="'+bw.toFixed(1)+'" height="'+hgt.toFixed(1)+'" fill="'+BOXC[b-1]+'"/>';
+      }
+    });
+    const dl=n=>new Date(n*DAY).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"});
+    h+='<svg viewBox="0 0 '+W+' '+HT+'" style="width:100%;height:auto;display:block">'+g
+      +'<line x1="'+pad+'" y1="'+bot+'" x2="'+(W-pad)+'" y2="'+bot+'" stroke="#dfdbd4" stroke-width="1"/>'
+      +'<text x="'+pad+'" y="'+(HT-4)+'" font-size="8" fill="#8b827a">'+dl(H[0][0])+'</text>'
+      +'<text x="'+(W-pad)+'" y="'+(HT-4)+'" font-size="8" fill="#8b827a" text-anchor="end">'+dl(H[H.length-1][0])+'</text>'
+      +'<text x="'+pad+'" y="'+(top-1)+'" font-size="8" fill="#8b827a">'+max+'</text></svg>';
+    h+='<div class="leg">'+BOXC.map((c,i)=>'<span><em style="background:'+c+'"></em>Fach '+(i+1)+'</span>').join("")+'</div>';
+  }
+  h+='</div>';
+  return h;
+}
+
+function wordsHtml(){
+  let h='<div class="card"><h3>Eigenes Wort anlegen</h3>';
+  h+='<input type="text" id="nwEn" value="'+esc(V.nwEn||"")+'" placeholder="englisch" lang="en" autocapitalize="none" autocorrect="off">';
+  h+='<input type="text" id="nwDe" value="'+esc(V.nwDe||"")+'" placeholder="deutsch">';
+  h+='<select id="nwLv">'+LEVELS.map(l=>'<option value="'+l+'"'+((V.nwLv||"B1")===l?" selected":"")+'>'+l+'</option>').join("")+'</select>';
+  h+='<button class="btn primary" onclick="addWord()">Hinzufügen</button>';
+  if(V.msg)h+='<p class="why">'+esc(V.msg)+'</p>';
+  h+='</div>';
+
+  h+='<div class="card"><h3>Zusätzliche Wörter</h3>';
+  if(!S.extra.length){
+    h+='<p class="why">Noch keine. '+WORDS.length+' Wörter sind fest eingebaut. Lege oben eigene an oder lade welche per KI nach.</p>';
+  }else{
+    const mine=S.extra.filter(w=>w.src==="me").length;
+    h+='<p class="why">'+S.extra.length+' zusätzlich zu den '+WORDS.length+' fest eingebauten, davon '+mine+' selbst angelegt.</p>';
+    S.extra.slice().reverse().slice(0,80).forEach(w=>{
+      h+='<div class="wordrow"><span><b>'+esc(w.en)+'</b> — '+esc(w.de)
+       +' <i class="mono">'+esc(w.level||"")+(w.src==="me"?" · eigen":"")+'</i></span>'
+       +'<button class="x" style="width:30px;height:30px;font-size:13px;flex:0 0 auto" onclick="delWord('
+       +JSON.stringify(w.en).replace(/"/g,"&quot;")+')">&#10005;</button></div>';
+    });
+    if(S.extra.length>80)h+='<p class="why">Gezeigt werden die 80 neuesten.</p>';
+  }
+  h+='</div>';
+  return h;
 }
 function renderVocab(){
+  const seg=(v,t)=>'<button class="'+(V.view===v?"on":"")+'" onclick="V.view=\''+v+'\';V.msg=\'\';render()">'+t+'</button>';
+  let top='<div class="seg">'+seg("cards","Üben")+seg("stats","Statistik")+seg("words","Wörter")+'</div>';
+  if(V.view==="stats"){$("main").innerHTML=top+statsHtml();return;}
+  if(V.view==="words"){$("main").innerHTML=top+wordsHtml();return;}
+
   const p=pool(), counts=[0,0,0,0,0];
   p.forEach(w=>{const k=S.cards[w.en];if(k)counts[Math.min(4,k.box-1)]++;});
   const unseen=p.filter(w=>!S.cards[w.en]).length;
-  let h='<div class="chips">'+["Alle"].concat(LEVELS).map(l=>
+  let h=top+'<div class="chips">'+["Alle"].concat(LEVELS).map(l=>
     '<button class="chip'+(V.level===l?" on":"")+'" onclick="V.level=\''+l+'\';buildRound();render()">'+l+'</button>').join("")+'</div>';
   h+='<div style="display:flex;justify-content:space-between;align-items:flex-end">';
   h+='<div class="rail"><div class="drawer new"><div class="box"></div><span class="n">'+unseen+'</span></div><div class="sep"></div>';
@@ -792,7 +2012,11 @@ function renderVocab(){
   if(!w){
     h+='<div class="card center"><h3>Runde fertig</h3><p class="mono" style="margin-top:8px">'+V.right+' gewusst · '+V.wrong+' wiederholt</p>';
     h+='<button class="btn primary" onclick="buildRound();render()">Nächste Runde</button>';
-    h+='<button class="btn ghost" onclick="loadMore()"'+(V.loading?" disabled":"")+'>'+(V.loading?"lädt …":"✦ 20 neue Wörter laden (KI)")+'</button>';
+    h+='<p class="small center">✦ Neue Wörter per KI nachladen</p>';
+    h+='<div class="chips" style="justify-content:center">'+[20,60,100].map(n=>
+      '<button class="chip" onclick="loadMore('+n+')"'+(V.loading?" disabled":"")+'>'+n+'</button>').join("")+'</div>';
+    if(V.loading)h+='<p class="mono">lädt … Runde '+esc(V.prog)+'</p>';
+    else if(V.added)h+='<p class="why"><b>'+V.added+' neue Wörter</b> im Kasten.</p>';
     if(V.err)h+='<p class="why" style="color:var(--red)">'+esc(V.err)+'</p>';
     h+='</div>';
   }else{
@@ -819,8 +2043,18 @@ function openTopic(i){
   render();
 }
 function checkG(){
-  G.items.forEach((it,i)=>{G.answers[i]=($("g"+i)||{}).value||"";});
-  G.checked=true;render();
+  syncForms();
+  G.checked=true;
+  recordGram();
+  render();
+}
+function recordGram(){
+  if(!G.topic||!G.items.length)return;
+  const hit=G.items.filter((it,i)=>isRight(it,G.answers[i])).length;
+  const pct=Math.round(hit/G.items.length*100);
+  const g=S.gram[G.topic]||{runs:0,best:0,lastScore:0,last:0};
+  g.runs++; g.best=Math.max(g.best||0,pct); g.lastScore=pct; g.last=Date.now();
+  S.gram[G.topic]=g; save();
 }
 async function aiSet(){
   G.loading=true;G.err="";render();
@@ -837,8 +2071,18 @@ async function aiSet(){
 function renderGrammar(){
   let h="";
   if(!G.topic){
-    h='<p class="meta">THEMA WÄHLEN</p><div class="list">';
-    GRAMMAR.forEach((t,i)=>{h+='<button onclick="openTopic('+i+')"><span class="t">'+esc(t.t)+'</span><span style="color:var(--faint)">›</span></button>';});
+    const done=GRAMMAR.filter(t=>(S.gram[t.t]||{}).best>=80).length;
+    h='<div class="card"><div class="kv"><span>Themen mit 80 % oder mehr</span><b>'+done+' / '+GRAMMAR.length+'</b></div>';
+    h+='<div class="bar"><i style="width:'+Math.round(done/GRAMMAR.length*100)+'%;background:var(--amber)"></i></div></div>';
+    h+='<p class="meta">THEMA WÄHLEN</p><div class="list">';
+    GRAMMAR.forEach((t,i)=>{
+      const g=S.gram[t.t];
+      const sub=g?("best "+g.best+" % · "+g.runs+"× geübt"+(g.last?" · "+ago(g.last):"")):"noch nicht geübt";
+      const ok=g&&g.best>=80;
+      h+='<button onclick="openTopic('+i+')"><span style="text-align:left"><span class="t">'+esc(t.t)+'</span><br>'
+       +'<span class="mono">'+esc(sub)+'</span></span>'
+       +'<span style="flex:0 0 auto;color:'+(ok?"var(--green)":"var(--faint)")+'">'+(ok?"&#10003;":"&#8250;")+'</span></button>';
+    });
     h+='</div>';
   }else{
     h='<button class="chip" onclick="G.topic=null;render()">← alle Themen</button>';
@@ -925,14 +2169,14 @@ function renderSpeak(){
   }
   h+='<div class="card"><p class="why">'+(SR?"Geht immer, auch wenn das Mikro oben streikt:":"Web-Spracherkennung ist hier nicht verfügbar — so geht es trotzdem:")+' Feld antippen, dann das Mikrofon-Symbol auf der iOS-Tastatur drücken (Diktat) und den Satz sprechen. Fehlt das Symbol: Einstellungen → Allgemein → Tastatur → „Diktieren“ einschalten.</p>';
   h+='<input type="text" id="typedbox" value="'+esc(P.typed)+'" placeholder="hier per Tastatur-Diktat sprechen" lang="en">';
-  h+='<button class="btn ghost" onclick="P.typed=$(\'typedbox\')?$(\'typedbox\').value:\'\';P.said=P.typed;render()">Vergleichen</button></div>';
+  h+='<button class="btn ghost" onclick="syncForms();P.said=P.typed;render()">Vergleichen</button></div>';
   h+='<div class="row"><button class="btn ghost" onclick="P.i++;P.said=\'\';P.typed=\'\';render()">↻ Nächster Satz</button>';
   h+='<button class="btn ghost" onclick="moreSentences()"'+(P.loading?" disabled":"")+'>'+(P.loading?"lädt …":"✦ Neue Sätze (KI)")+'</button></div>';
   $("main").innerHTML=h;
 }
 
 /* ================= Chat ================= */
-let C={loading:false,err:""};
+let C={loading:false,err:"",draft:""};
 function cleanCorrection(c,userMsg){
   if(c===null||c===undefined)return null;
   let t=String(c).trim();
@@ -948,9 +2192,10 @@ function cleanCorrection(c,userMsg){
   return t;
 }
 async function sendChat(){
-  const box=$("chatin"); const text=(box.value||"").trim();
+  syncForms();
+  const text=String(C.draft||"").trim();
   if(!text||C.loading)return;
-  S.chat.push({role:"user",content:text}); box.value=""; C.loading=true;C.err=""; save(); render();
+  S.chat.push({role:"user",content:text}); C.draft=""; C.loading=true;C.err=""; save(); render();
   try{
     const msgs=[];
     S.chat.slice(-20).forEach(m=>{
@@ -996,8 +2241,8 @@ function renderChat(){
   if(C.loading)h+='<p class="mono">Oliver tippt …</p>';
   if(C.err)h+='<p class="why" style="color:var(--red)">'+esc(C.err)+'</p>';
   h+='<div style="display:flex;gap:8px;margin-top:14px">';
-  if(SR)h+='<button class="x" style="width:46px;height:46px" onclick="record(t=>{$(\'chatin\').value+=($(\'chatin\').value?\' \':\'\')+t})">&#127908;</button>';
-  h+='<input type="text" id="chatin" placeholder="Write in English …" style="margin:0" onkeydown="if(event.key===\'Enter\')sendChat()">';
+  if(SR)h+='<button class="x" style="width:46px;height:46px" onclick="record(t=>{C.draft=(C.draft?C.draft+\' \':\'\')+t;render()},true)">&#127908;</button>';
+  h+='<input type="text" id="chatin" value="'+esc(C.draft||"")+'" placeholder="Write in English …" style="margin:0" onkeydown="if(event.key===\'Enter\')sendChat()">';
   h+='<button class="x" style="width:46px;height:46px;background:var(--amber);color:#1c1917" onclick="sendChat()">➤</button></div>';
   $("main").innerHTML=h;
 }
@@ -1016,7 +2261,8 @@ function doImport(){
   try{
     const next=unpackState($("importbox").value);
     if(!next)throw new Error("leer");
-    S=Object.assign({cards:{},extra:[],chat:[],stats:{streak:0,reviews:0,correct:0,lastDay:null}},next);
+    S=Object.assign(blank(),next);
+    normalise();snapshot();
     save();$("importbox").value="";closeBackup();buildRound();render();
   }catch(e){$("notice").textContent="Code war unvollständig — bitte komplett einfügen.";}
 }
@@ -1042,7 +2288,7 @@ async function saveKey(){
 }
 
 /* ================= Start ================= */
-loadState();buildRound();render();
+loadState();snapshot();buildRound();render();
 if(storageOk)$("saveinfo").textContent="Automatisches Speichern aktiv";
 </script>
 </body>
