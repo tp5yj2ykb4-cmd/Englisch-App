@@ -1902,6 +1902,10 @@ function checkScroll(){
 
 /* innerHTML wirft Eingabefelder weg. Deshalb VOR jedem Neuzeichnen alles,
    was im DOM steht, zurück in den Zustand schreiben. */
+/* Ein Feld leeren heißt: Zustand UND DOM leeren. Nur den Zustand zu setzen
+   reicht nicht, weil syncForms beim nächsten render() das DOM zurückliest und
+   den alten Text wiederherstellt. Diese Falle hat schon zweimal zugeschlagen. */
+function clearField(id){const el=$(id); if(el)el.value="";}
 function syncForms(){
   const e=$("nwEn"), d=$("nwDe"), l=$("nwLv"), t=$("typedbox"), c=$("chatin");
   if(e)V.nwEn=e.value; if(d)V.nwDe=d.value; if(l)V.nwLv=l.value;
@@ -1976,8 +1980,7 @@ function addWord(){
   if(allWords().some(w=>w.en===en)){V.msg="„"+en+"“ liegt schon im Kasten.";render();return;}
   S.extra.push({en:en,de:de,level:lv,src:"me"});
   V.nwEn="";V.nwDe="";V.msg="„"+en+"“ hinzugefügt.";
-  /* Auch im DOM leeren — sonst liest syncForms beim Neuzeichnen die alten Werte zurück. */
-  if($("nwEn"))$("nwEn").value=""; if($("nwDe"))$("nwDe").value="";
+  clearField("nwEn");clearField("nwDe");
   save();buildRound();render();
 }
 function delWord(en){
@@ -2254,6 +2257,14 @@ function renderSpeak(){
 
 /* ================= Chat ================= */
 let C={loading:false,err:"",draft:"",confirmClear:false};
+/* Diktat hängt an das Feld an, nicht an C.draft — das DOM ist die Quelle,
+   syncForms holt den Wert beim Neuzeichnen von dort. */
+function chatDictated(t){
+  const b=$("chatin");
+  if(b)b.value=(b.value?b.value+" ":"")+t;
+  else C.draft=(C.draft?C.draft+" ":"")+t;
+  render();
+}
 function clearChat(){
   S.chat=[];
   C.confirmClear=false;C.err="";
@@ -2277,7 +2288,9 @@ async function sendChat(){
   syncForms();
   const text=String(C.draft||"").trim();
   if(!text||C.loading)return;
-  S.chat.push({role:"user",content:text}); C.draft=""; C.loading=true;C.err=""; save(); render();
+  S.chat.push({role:"user",content:text});
+  C.draft=""; clearField("chatin");
+  C.loading=true;C.err=""; save(); render();
   try{
     const msgs=[];
     S.chat.slice(-20).forEach(m=>{
@@ -2337,7 +2350,7 @@ function renderChat(){
     }
   }
   h+='<div style="display:flex;gap:8px;margin-top:14px">';
-  if(SR)h+='<button class="x" style="width:46px;height:46px" onclick="record(t=>{C.draft=(C.draft?C.draft+\' \':\'\')+t;render()},true)">&#127908;</button>';
+  if(SR)h+='<button class="x" style="width:46px;height:46px" onclick="record(chatDictated,true)">&#127908;</button>';
   h+='<input type="text" id="chatin" value="'+esc(C.draft||"")+'" placeholder="Write in English …" style="margin:0" onkeydown="if(event.key===\'Enter\')sendChat()">';
   h+='<button class="x" style="width:46px;height:46px;background:var(--amber);color:#1c1917" onclick="sendChat()">➤</button></div>';
   $("main").innerHTML=h;
