@@ -25,7 +25,24 @@ html,body{margin:0; height:100%; background:var(--bg); color:var(--txt);
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   -webkit-font-smoothing:antialiased; font-variant-numeric:tabular-nums}
 body{background-image:radial-gradient(130% 55% at 50% 0%, #fff6e3 0%, rgba(255,246,227,0) 62%)}
-#app{display:flex; flex-direction:column; height:100%; max-width:520px; margin:0 auto}
+#app{display:flex; flex-direction:column; height:100%; max-width:520px; margin:0 auto; position:relative}
+
+/* Sprung ans Ende. Liegt im #app, damit er auf breiten Fenstern am rechten
+   Rand der App klebt und nicht am Rand des Bildschirms. */
+.tobottom{position:absolute; right:14px; z-index:8;
+  bottom:calc(env(safe-area-inset-bottom, 0px) + 70px);
+  width:44px; height:44px; border-radius:999px; border:1px solid rgba(28,25,23,.08);
+  background:rgba(255,255,255,.92); color:var(--dim); font-size:17px; cursor:pointer;
+  -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
+  box-shadow:var(--sh-2); display:none; align-items:center; justify-content:center;
+  transition:transform .12s var(--ease)}
+.tobottom.show{display:flex}
+.tobottom:active{transform:scale(.9)}
+.chatbar{display:flex; justify-content:space-between; align-items:center; gap:10px;
+  margin-top:18px; padding-top:12px; border-top:1px solid var(--panel2)}
+.linkbtn{background:none; border:none; padding:6px 2px; cursor:pointer;
+  font-family:inherit; font-size:12.5px; font-weight:600; color:var(--red)}
+.linkbtn:active{opacity:.55}
 
 /* Kopf: Safe Area oben war vorher nicht berücksichtigt — im Home-Bildschirm-
    Modus lief der Titel sonst unter die Statusleiste. */
@@ -226,6 +243,7 @@ label.small{display:block}
   </header>
   <button class="banner" id="banner" style="display:none" onclick="openBackup()"></button>
   <main id="main"></main>
+  <button class="tobottom" id="tobottom" onclick="scrollDown()" title="Nach unten">&#8595;</button>
   <nav>
     <button data-tab="vocab" class="on" onclick="go('vocab')"><span class="ic">&#9634;</span>Karten</button>
     <button data-tab="grammar" onclick="go('grammar')"><span class="ic">&#182;</span>Grammatik</button>
@@ -1723,16 +1741,25 @@ function headline(){
 async function askClaude(messages,system,maxTokens){
   if(!apiKey) throw new Error("Kein API-Key hinterlegt (Sicherung → Key)");
   if(provider==="gemini"){
-    const payload=JSON.stringify({
+    /* Zwei Dinge, die teuer gelernt wurden:
+       1. Die neuen Flash-Modelle denken vor der Antwort nach, und diese
+          Denk-Token zählen gegen maxOutputTokens. Ohne thinkingBudget:0 ging
+          das ganze Budget fürs Nachdenken drauf — lange Wartezeit, danach eine
+          Antwort komplett ohne Text.
+       2. Das Budget war mit 1024 ohnehin zu knapp. */
+    const want=Math.max(2048,maxTokens||800);
+    const body=(mitDenken)=>JSON.stringify({
       system_instruction:{parts:[{text:system}]},
       contents:messages.map(m=>({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]})),
-      generationConfig:{maxOutputTokens:Math.max(1024,maxTokens||800)}
+      generationConfig:mitDenken
+        ?{maxOutputTokens:want}
+        :{maxOutputTokens:want,thinkingConfig:{thinkingBudget:0}}
     });
-    const tryModel=async(model)=>{
+    const call=async(model,mitDenken)=>{
       let res;
       try{
         res=await fetch("https://generativelanguage.googleapis.com/v1beta/models/"+model+":generateContent",
-          {method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":apiKey},body:payload});
+          {method:"POST",headers:{"Content-Type":"application/json","x-goog-api-key":apiKey},body:body(mitDenken)});
       }catch(netErr){
         const err=new Error("Netzwerkfehler: Die Anfrage kam gar nicht bei Google an („Load failed“). Häufigste Ursachen: Key-Einschränkung in AI Studio (Anwendungsbeschränkung „Websites“ ohne deine GitHub-Adresse), Werbeblocker/VPN oder kurz kein Netz. Notlösung: neuen Key ohne Anwendungsbeschränkung anlegen.");
         err.code=0;throw err;
@@ -1744,20 +1771,47 @@ async function askClaude(messages,system,maxTokens){
       }
       const d=await res.json();
       const c=d.candidates&&d.candidates[0];
-      const txt=((c&&c.content&&c.content.parts)||[]).map(p=>p.text||"").join("\n");
-      if(!txt) throw new Error("leere Antwort (Tageslimit erreicht?)");
-      return txt;
+      const txt=((c&&c.content&&c.content.parts)||[]).map(p=>p.text||"").join("\n").trim();
+      if(txt) return txt;
+      /* Kein Text: den Grund benennen statt zu raten. Die alte Meldung
+         behauptete pauschal „Tageslimit erreicht“ und führte in die Irre. */
+      const fr=(c&&c.finishReason)||"";
+      const blockiert=d.promptFeedback&&d.promptFeedback.blockReason;
+      const denk=(d.usageMetadata&&d.usageMetadata.thoughtsTokenCount)||0;
+      let grund;
+      if(blockiert)grund="Google hat die Anfrage blockiert ("+blockiert+").";
+      else if(fr==="MAX_TOKENS")grund="Die Antwort passte nicht ins Token-Budget"+(denk?", "+denk+" Token gingen fürs interne Nachdenken drauf":"")+".";
+      else if(fr==="SAFETY"||fr==="PROHIBITED_CONTENT")grund="Googles Filter hat die Antwort zurückgehalten.";
+      else if(fr==="RECITATION")grund="Google hat die Antwort wegen Zitat-Erkennung verworfen.";
+      else grund="Das Modell hat nichts zurückgegeben"+(fr?" (Grund: "+fr+")":"")+".";
+      const err=new Error(grund+" Modell: "+model+".");
+      err.code=204;err.leer=true;throw err;
+    };
+    /* Kennt ein Modell thinkingConfig nicht, kommt ein 400 zurück.
+       Dann derselbe Versuch nochmal ohne den Zusatz. */
+    const tryModel=async(model)=>{
+      try{return await call(model,false);}
+      catch(e){
+        if(e.code===400&&/thinking|thought|denk/i.test(e.message||""))return await call(model,true);
+        throw e;
+      }
     };
     const remember=(m)=>{gModel=m;try{localStorage.setItem(KEY+":gmodel",m);}catch(_e){}};
     const modelGone=(e)=>e.code===404||/not (available|found|supported)|deprecated|no longer|does not exist/i.test(e.message||"");
     const cands=[...new Set([gModel,"gemini-flash-latest","gemini-3.7-flash","gemini-3.6-flash",
       "gemini-flash-lite-latest","gemini-2.5-flash-lite","gemini-2.5-flash"].filter(Boolean))];
     const overloaded=(e)=>e.code===503||e.code===429||/high demand|overloaded|try again|temporar|unavailable|resource.?exhaust|quota/i.test(e.message||"");
+    /* Ein aufgebrauchtes Tageskontingent geht durch Warten nicht weg.
+       Solche Fehler dürfen den zweiten Durchlauf nicht auslösen, sonst
+       wartet der Nutzer minutenlang auf eine Absage, die schon feststeht. */
+    const tageslimit=(e)=>e.code===429&&/per ?day|daily|perday|current quota|billing/i.test(e.message||"");
     let lastErr=null, sawOverload=false;
     for(const m of cands){
       try{const t=await tryModel(m);remember(m);return t;}
       catch(e){
         if(modelGone(e)){lastErr=lastErr||e;continue;}
+        if(e.leer){lastErr=e;continue;}
+        if(tageslimit(e)){lastErr=e;continue;}
         if(overloaded(e)){sawOverload=true;lastErr=e;continue;}
         throw e;
       }
@@ -1783,6 +1837,8 @@ async function askClaude(messages,system,maxTokens){
         .sort().reverse()[0];
       if(pick){const t=await tryModel(pick);remember(pick);return t;}
     }catch(_e){}
+    if(lastErr&&tageslimit(lastErr))
+      throw new Error("Das kostenlose Tageskontingent bei Google ist aufgebraucht. Es füllt sich einmal täglich wieder auf, nach US-Westküstenzeit, bei uns also im Laufe des Vormittags. Bis dahin hilft nur ein anderer Key oder in den Einstellungen der Wechsel auf Anthropic.");
     throw lastErr||new Error("kein Gemini-Modell verfügbar");
   }
   let res;
@@ -1822,7 +1878,27 @@ function parseJSON(text){
 
 /* ================= Tabs ================= */
 let TAB="vocab";
-function go(t){TAB=t;document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));render();}
+function go(t){
+  TAB=t;
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));
+  C.confirmClear=false;                    // offene Rückfrage nicht über den Tabwechsel retten
+  const m=$("main"); if(m)m.scrollTop=0;   // sonst hängt man im neuen Tab mitten im Inhalt
+  render();
+}
+function scrollDown(){
+  const m=$("main"); if(!m)return;
+  /* Sanftes Scrollen läuft über eine Animation. Ist die Seite gerade nicht
+     sichtbar, friert die ein und der Sprung passiert nie. Dann hart springen. */
+  const sanft=document.visibilityState==="visible";
+  try{m.scrollTo({top:m.scrollHeight,behavior:sanft?"smooth":"auto"});}
+  catch(e){m.scrollTop=m.scrollHeight;}
+  if(!sanft)m.scrollTop=m.scrollHeight;
+}
+function checkScroll(){
+  const m=$("main"), b=$("tobottom");
+  if(!m||!b)return;
+  b.classList.toggle("show", m.scrollHeight-m.scrollTop-m.clientHeight>180);
+}
 
 /* innerHTML wirft Eingabefelder weg. Deshalb VOR jedem Neuzeichnen alles,
    was im DOM steht, zurück in den Zustand schreiben. */
@@ -1840,6 +1916,7 @@ function render(){
   else if(TAB==="grammar")renderGrammar();
   else if(TAB==="speak")renderSpeak();
   else renderChat();
+  checkScroll();
 }
 
 /* ================= Karten ================= */
@@ -2176,7 +2253,12 @@ function renderSpeak(){
 }
 
 /* ================= Chat ================= */
-let C={loading:false,err:"",draft:""};
+let C={loading:false,err:"",draft:"",confirmClear:false};
+function clearChat(){
+  S.chat=[];
+  C.confirmClear=false;C.err="";
+  save();render();
+}
 function cleanCorrection(c,userMsg){
   if(c===null||c===undefined)return null;
   let t=String(c).trim();
@@ -2240,11 +2322,27 @@ function renderChat(){
   });
   if(C.loading)h+='<p class="mono">Oliver tippt …</p>';
   if(C.err)h+='<p class="why" style="color:var(--red)">'+esc(C.err)+'</p>';
+
+  /* Löschen sitzt direkt über dem Eingabefeld. Der Chat springt beim Öffnen
+     ans Ende, oben wäre der Knopf also nie ohne Scrollen erreichbar. */
+  if(S.chat.length){
+    if(C.confirmClear){
+      h+='<div class="card"><h3>Verlauf löschen?</h3>';
+      h+='<p class="why">Alle '+S.chat.length+' Nachrichten werden entfernt. Der Kurzcode in der Sicherung enthält den Chat nicht, sie sind danach also endgültig weg. Vokabeln, Grammatik und Statistik bleiben unberührt.</p>';
+      h+='<div class="row"><button class="btn ghost" onclick="C.confirmClear=false;render()">Abbrechen</button>';
+      h+='<button class="btn bad" onclick="clearChat()">Löschen</button></div></div>';
+    }else{
+      h+='<div class="chatbar"><span class="mono">'+S.chat.length+' Nachrichten</span>';
+      h+='<button class="linkbtn" onclick="C.confirmClear=true;render()">Verlauf löschen</button></div>';
+    }
+  }
   h+='<div style="display:flex;gap:8px;margin-top:14px">';
   if(SR)h+='<button class="x" style="width:46px;height:46px" onclick="record(t=>{C.draft=(C.draft?C.draft+\' \':\'\')+t;render()},true)">&#127908;</button>';
   h+='<input type="text" id="chatin" value="'+esc(C.draft||"")+'" placeholder="Write in English …" style="margin:0" onkeydown="if(event.key===\'Enter\')sendChat()">';
   h+='<button class="x" style="width:46px;height:46px;background:var(--amber);color:#1c1917" onclick="sendChat()">➤</button></div>';
   $("main").innerHTML=h;
+  /* Im Chat interessiert immer das Ende, nicht der Anfang. */
+  const m=$("main"); m.scrollTop=m.scrollHeight;
 }
 
 /* ================= Sicherung ================= */
@@ -2289,6 +2387,8 @@ async function saveKey(){
 
 /* ================= Start ================= */
 loadState();snapshot();buildRound();render();
+$("main").addEventListener("scroll",checkScroll,{passive:true});
+window.addEventListener("resize",checkScroll);
 if(storageOk)$("saveinfo").textContent="Automatisches Speichern aktiv";
 </script>
 </body>
