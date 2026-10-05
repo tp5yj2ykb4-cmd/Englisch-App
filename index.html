@@ -5,34 +5,86 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#fafaf9">
+<meta name="theme-color" id="themecolor" content="#f7f5f1">
+<script>
+/* Gewählte Darstellung vor dem ersten Zeichnen setzen, sonst blitzt die App
+   beim Start kurz hell auf, obwohl „Dunkel" eingestellt ist. */
+try{var th=localStorage.getItem("et-standalone-v1:theme");if(th)document.documentElement.setAttribute("data-theme",th);}catch(e){}
+</script>
 <link rel="apple-touch-icon" href="icon.png">
 <link rel="icon" type="image/png" href="icon.png">
 <title>English Trainer</title>
 <style>
 :root{
-  --bg:#faf9f7; --panel:#ffffff; --panel2:#efedea; --line:#dfdbd4;
+  --bg:#f7f5f1; --panel:#ffffff; --panel2:#efedea; --line:#dfdbd4;
   --txt:#1c1917; --dim:#57534e; --faint:#8b827a;
   --amber:#f59e0b; --amber2:#b45309; --amber-soft:#fef3c7;
   --green:#059669; --red:#e11d48;
-  --r-sm:12px; --r-md:16px; --r-lg:20px; --r-xl:26px;
-  --sh-1:0 1px 2px rgba(28,25,23,.05), 0 2px 8px -2px rgba(28,25,23,.06);
-  --sh-2:0 2px 6px rgba(28,25,23,.05), 0 14px 34px -14px rgba(28,25,23,.20);
+  --indigo:#6366f1; --indigo-soft:#e0e7ff;
+  --r-sm:12px; --r-md:16px; --r-lg:20px; --r-xl:28px;
+  --sh-1:0 1px 3px rgba(28,25,23,.06), 0 4px 12px -4px rgba(28,25,23,.09);
+  --sh-2:0 4px 8px rgba(28,25,23,.06), 0 20px 44px -16px rgba(28,25,23,.22);
   --ease:cubic-bezier(.22,.61,.36,1);
+  --edge:rgba(28,25,23,.06); --glass:rgba(255,255,255,.84); --veil:rgba(250,249,247,.94);
+  --glow1:#ffedc2; --glow2:#ffe1e6;
+  --face:linear-gradient(168deg,#ffffff 0%,#fdfcfa 100%);
+  --face-back:linear-gradient(168deg,#fffdf5 0%,#fef3c7 100%);
+  --soft:linear-gradient(170deg,#fffdf6,#fffbeb);
+  --banner-bg:linear-gradient(180deg,#fff1f2,#ffe4e6); --banner-txt:#9f1239;
+  --toast-bg:#1c1917; --toast-txt:#fff; --raise:#ffffff;
+  color-scheme:light;
+}
+/* Dunkel: einmal für „Automatisch" (folgt dem iPhone) und einmal für die
+   feste Wahl in den Einstellungen. CSS kann einen Block nicht für beide
+   Fälle teilen, deshalb steht er doppelt — Änderungen bitte in beiden. */
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#14110f; --panel:#1f1b18; --panel2:#2c2622; --line:#3d3631;
+    --txt:#f5f0ea; --dim:#bdb2a8; --faint:#8c8178;
+    --amber2:#fbbf24; --amber-soft:#3a2a12; --green:#34d399; --red:#fb7185;
+    --sh-1:0 1px 2px rgba(0,0,0,.35), 0 4px 12px -4px rgba(0,0,0,.5);
+    --sh-2:0 4px 8px rgba(0,0,0,.35), 0 20px 44px -16px rgba(0,0,0,.75);
+    --edge:rgba(255,255,255,.07); --glass:rgba(27,23,20,.84); --veil:rgba(20,17,15,.95);
+    --glow1:rgba(245,158,11,.16); --glow2:rgba(225,29,72,.11);
+    --face:linear-gradient(168deg,#28231f 0%,#1f1b18 100%);
+    --face-back:linear-gradient(168deg,#2e2416 0%,#3a2a12 100%);
+    --soft:linear-gradient(170deg,#2a2218,#231c14);
+    --banner-bg:linear-gradient(180deg,#3b1520,#2f1119); --banner-txt:#fecdd3;
+    --toast-bg:#f5f0ea; --toast-txt:#1c1917; --raise:#3a332e;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#14110f; --panel:#1f1b18; --panel2:#2c2622; --line:#3d3631;
+  --txt:#f5f0ea; --dim:#bdb2a8; --faint:#8c8178;
+  --amber2:#fbbf24; --amber-soft:#3a2a12; --green:#34d399; --red:#fb7185;
+  --sh-1:0 1px 2px rgba(0,0,0,.35), 0 4px 12px -4px rgba(0,0,0,.5);
+  --sh-2:0 4px 8px rgba(0,0,0,.35), 0 20px 44px -16px rgba(0,0,0,.75);
+  --edge:rgba(255,255,255,.07); --glass:rgba(27,23,20,.84); --veil:rgba(20,17,15,.95);
+  --glow1:rgba(245,158,11,.16); --glow2:rgba(225,29,72,.11);
+  --face:linear-gradient(168deg,#28231f 0%,#1f1b18 100%);
+  --face-back:linear-gradient(168deg,#2e2416 0%,#3a2a12 100%);
+  --soft:linear-gradient(170deg,#2a2218,#231c14);
+  --banner-bg:linear-gradient(180deg,#3b1520,#2f1119); --banner-txt:#fecdd3;
+  --toast-bg:#f5f0ea; --toast-txt:#1c1917; --raise:#3a332e;
+  color-scheme:dark;
 }
 *{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
 html,body{margin:0; height:100%; background:var(--bg); color:var(--txt);
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   -webkit-font-smoothing:antialiased; font-variant-numeric:tabular-nums}
-body{background-image:radial-gradient(130% 55% at 50% 0%, #fff6e3 0%, rgba(255,246,227,0) 62%)}
+body{background-image:
+  radial-gradient(120% 45% at 15% 0%, var(--glow1) 0%, transparent 60%),
+  radial-gradient(90% 40% at 100% 8%, var(--glow2) 0%, transparent 60%);
+  background-repeat:no-repeat}
 #app{display:flex; flex-direction:column; height:100%; max-width:520px; margin:0 auto; position:relative}
 
 /* Sprung ans Ende. Liegt im #app, damit er auf breiten Fenstern am rechten
    Rand der App klebt und nicht am Rand des Bildschirms. */
 .tobottom{position:absolute; right:14px; z-index:8;
   bottom:calc(env(safe-area-inset-bottom, 0px) + 70px);
-  width:44px; height:44px; border-radius:999px; border:1px solid rgba(28,25,23,.08);
-  background:rgba(255,255,255,.92); color:var(--dim); font-size:17px; cursor:pointer;
+  width:44px; height:44px; border-radius:999px; border:1px solid var(--edge);
+  background:var(--glass); color:var(--dim); font-size:17px; cursor:pointer;
   -webkit-backdrop-filter:blur(12px); backdrop-filter:blur(12px);
   box-shadow:var(--sh-2); display:none; align-items:center; justify-content:center;
   transition:transform .12s var(--ease)}
@@ -47,40 +99,51 @@ body{background-image:radial-gradient(130% 55% at 50% 0%, #fff6e3 0%, rgba(255,2
 /* Kopf: Safe Area oben war vorher nicht berücksichtigt — im Home-Bildschirm-
    Modus lief der Titel sonst unter die Statusleiste. */
 header{display:flex; justify-content:space-between; align-items:center; gap:12px;
-  padding:calc(env(safe-area-inset-top, 0px) + 14px) 16px 12px;
-  border-bottom:1px solid rgba(28,25,23,.06)}
-h1{font-family:Georgia,'Times New Roman',serif; font-size:21px; letter-spacing:-.01em;
-  margin:0; color:var(--txt)}
-.sub{font-family:ui-monospace,Menlo,monospace; font-size:9.5px; letter-spacing:.14em;
-  color:var(--faint); margin-top:4px; text-transform:uppercase}
-.pill{display:flex; align-items:center; gap:6px; flex:0 0 auto;
-  background:linear-gradient(180deg,#fffbeb,var(--amber-soft));
-  border:1px solid rgba(245,158,11,.28); border-radius:999px;
-  padding:7px 13px; font-family:ui-monospace,monospace; font-size:12px; font-weight:600;
-  color:var(--amber2); box-shadow:var(--sh-1)}
+  padding:calc(env(safe-area-inset-top, 0px) + 16px) 16px 14px}
+h1{font-size:24px; font-weight:800; letter-spacing:-.035em; margin:0; color:var(--txt)}
+h1 em{font-style:normal; background:linear-gradient(120deg,#f59e0b,#e11d48);
+  -webkit-background-clip:text; background-clip:text; color:transparent}
+.sub{font-size:12px; font-weight:500; color:var(--faint); margin-top:3px}
+/* Serie als Knopf: führt direkt zu den Medaillen. */
+.pill{display:flex; align-items:center; gap:5px; flex:0 0 auto; border:none; cursor:pointer;
+  background:linear-gradient(135deg,#fbbf24,#f97316); border-radius:999px;
+  padding:8px 14px 8px 11px; font-family:inherit; font-size:16px; font-weight:800;
+  color:#fff; text-shadow:0 1px 2px rgba(154,52,18,.35);
+  box-shadow:0 2px 4px rgba(194,65,12,.2), 0 8px 20px -6px rgba(249,115,22,.55);
+  transition:transform .12s var(--ease)}
+.pill:active{transform:scale(.94)}
+.pill.cold{background:linear-gradient(135deg,#d6d3d1,#a8a29e); text-shadow:none;
+  box-shadow:var(--sh-1)}
+.pill .medn{font-size:12px; font-weight:700; opacity:.9; padding-left:7px; margin-left:2px;
+  border-left:1px solid rgba(255,255,255,.4)}
 main{flex:1; overflow-y:auto; padding:18px 16px 28px; -webkit-overflow-scrolling:touch;
   overscroll-behavior-y:contain}
 
 /* Tableiste mit Pillen-Markierung statt nur Farbwechsel. */
-nav{display:grid; grid-template-columns:repeat(4,1fr); gap:4px;
-  border-top:1px solid rgba(28,25,23,.07);
-  background:rgba(255,255,255,.86);
-  -webkit-backdrop-filter:saturate(180%) blur(16px); backdrop-filter:saturate(180%) blur(16px);
-  padding:7px 8px calc(env(safe-area-inset-bottom, 0px) + 7px)}
-nav button{background:none; border:none; color:var(--faint); border-radius:14px;
-  padding:7px 0 6px; font-family:ui-monospace,monospace; font-size:9.5px;
-  letter-spacing:.06em; cursor:pointer;
-  transition:background .22s var(--ease), color .22s var(--ease), transform .12s var(--ease)}
-nav button.on{color:var(--amber2); background:var(--amber-soft)}
-nav button:active{transform:scale(.93)}
-nav button .ic{font-size:19px; display:block; margin-bottom:3px}
+nav{display:grid; grid-template-columns:repeat(5,1fr); gap:2px;
+  border-top:1px solid var(--edge);
+  background:var(--glass);
+  -webkit-backdrop-filter:saturate(180%) blur(20px); backdrop-filter:saturate(180%) blur(20px);
+  padding:6px 6px calc(env(safe-area-inset-bottom, 0px) + 6px)}
+nav button{position:relative; background:none; border:none; color:var(--faint); border-radius:14px;
+  padding:6px 0 5px; font-family:inherit; font-size:10.5px; font-weight:600; cursor:pointer;
+  transition:color .22s var(--ease), transform .12s var(--ease)}
+nav button:active{transform:scale(.92)}
+/* Inaktive Emojis grau, das aktive in Farbe: wirkt ruhiger als fünf bunte Icons. */
+nav button .ic{font-size:21px; display:block; margin-bottom:2px; filter:grayscale(1); opacity:.5;
+  transition:filter .25s, opacity .25s, transform .25s var(--ease)}
+nav button.on{color:var(--txt)}
+nav button.on .ic{filter:none; opacity:1; transform:translateY(-1px) scale(1.1)}
+nav button.on::after{content:""; position:absolute; top:-6px; left:50%; width:24px; height:3px;
+  margin-left:-12px; border-radius:0 0 3px 3px; background:linear-gradient(90deg,#fbbf24,#f97316)}
 
 .btn{display:block; width:100%; border:none; border-radius:var(--r-md); padding:15px;
   font-size:15px; font-weight:600; letter-spacing:-.01em; cursor:pointer; margin-top:10px;
   transition:transform .12s var(--ease), box-shadow .22s var(--ease), opacity .2s}
 .btn:active{transform:scale(.985)}
-.btn.primary{background:linear-gradient(180deg,#fbbf24,#f59e0b); color:#3d2808;
-  box-shadow:0 1px 2px rgba(180,83,9,.22), 0 8px 20px -8px rgba(245,158,11,.6)}
+.btn.primary{background:linear-gradient(135deg,#fbbf24,#f97316); color:#fff;
+  text-shadow:0 1px 2px rgba(154,52,18,.3);
+  box-shadow:0 1px 2px rgba(194,65,12,.22), 0 10px 22px -8px rgba(249,115,22,.6)}
 .btn.ghost{background:var(--panel2); color:var(--txt)}
 .btn.good{background:linear-gradient(180deg,#10b981,#059669); color:#fff;
   box-shadow:0 1px 2px rgba(5,150,105,.22), 0 8px 20px -8px rgba(5,150,105,.5)}
@@ -95,7 +158,7 @@ nav button .ic{font-size:19px; display:block; margin-bottom:3px}
 .seg button{flex:1; border:none; background:none; border-radius:13px; padding:9px 0;
   font-size:13px; font-weight:600; letter-spacing:-.01em; color:var(--dim); cursor:pointer;
   transition:background .22s var(--ease), color .22s var(--ease), box-shadow .22s var(--ease)}
-.seg button.on{background:var(--panel); color:var(--txt); box-shadow:var(--sh-1)}
+.seg button.on{background:var(--raise); color:var(--txt); box-shadow:var(--sh-1)}
 .seg button:active{transform:scale(.97)}
 
 .chips{display:flex; gap:7px; overflow-x:auto; padding:2px 2px 6px; scrollbar-width:none}
@@ -105,8 +168,8 @@ nav button .ic{font-size:19px; display:block; margin-bottom:3px}
   background:var(--panel2); color:var(--dim);
   transition:background .22s var(--ease), color .22s var(--ease), transform .12s var(--ease)}
 .chip:active{transform:scale(.95)}
-.chip.on{background:linear-gradient(180deg,#fbbf24,#f59e0b); color:#3d2808;
-  box-shadow:0 1px 2px rgba(180,83,9,.2), 0 6px 14px -6px rgba(245,158,11,.55)}
+.chip.on{background:linear-gradient(135deg,#fbbf24,#f97316); color:#fff;
+  box-shadow:0 1px 2px rgba(194,65,12,.2), 0 6px 14px -6px rgba(249,115,22,.55)}
 .chip:disabled{opacity:.45; box-shadow:none}
 
 .rail{display:flex; align-items:flex-end; gap:5px; margin:14px 0 4px}
@@ -128,23 +191,23 @@ nav button .ic{font-size:19px; display:block; margin-bottom:3px}
 .flip.turned .inner{transform:rotateY(180deg)}
 .face{position:absolute; inset:0; backface-visibility:hidden; -webkit-backface-visibility:hidden;
   display:flex; flex-direction:column; align-items:center; justify-content:center;
-  border-radius:var(--r-xl); border:1px solid rgba(28,25,23,.07);
-  background:linear-gradient(168deg,#ffffff 0%,#fdfcfa 100%); padding:24px;
+  border-radius:var(--r-xl); border:1px solid var(--edge);
+  background:var(--face); padding:24px;
   box-shadow:var(--sh-2)}
 .face.back{transform:rotateY(180deg); border-color:rgba(245,158,11,.32);
-  background:linear-gradient(168deg,#fffdf5 0%,#fef3c7 100%)}
+  background:var(--face-back)}
 .word{font-family:Georgia,serif; font-size:35px; text-align:center; line-height:1.18;
   letter-spacing:-.015em; color:var(--txt)}
 .face.back .word{font-size:28px; color:var(--amber2)}
 .hint{position:absolute; bottom:14px; font-family:ui-monospace,monospace;
   font-size:9.5px; letter-spacing:.08em; color:var(--faint); text-transform:uppercase}
 .spk{margin-top:18px; border:1px solid rgba(245,158,11,.3);
-  background:linear-gradient(180deg,#fffbeb,var(--amber-soft)); color:var(--amber2);
+  background:var(--soft); color:var(--amber2);
   border-radius:999px; width:48px; height:48px; font-size:20px; cursor:pointer;
   box-shadow:var(--sh-1); transition:transform .12s var(--ease), background .2s}
 .spk:active{transform:scale(.9)}
 
-.card{background:var(--panel); border:1px solid rgba(28,25,23,.06);
+.card{background:var(--panel); border:1px solid var(--edge);
   border-radius:var(--r-lg); padding:18px; margin-top:14px; box-shadow:var(--sh-1)}
 .card h3{font-size:17px; font-weight:600; letter-spacing:-.02em; margin:0 0 2px; color:var(--txt)}
 
@@ -165,27 +228,27 @@ textarea{line-height:1.5}
 .why{font-size:12.5px; line-height:1.5; color:var(--dim); margin:8px 0 0}
 .why b{color:var(--green); font-weight:600}
 .rules{border:1px solid rgba(245,158,11,.3); border-radius:var(--r-lg);
-  background:linear-gradient(170deg,#fffdf6,#fffbeb); padding:15px 17px; margin-top:14px}
+  background:var(--soft); padding:15px 17px; margin-top:14px}
 .rules div{display:flex; gap:11px; font-size:14px; line-height:1.45; color:var(--dim); margin:7px 0}
 .rules span{color:var(--amber2); font-family:ui-monospace,monospace; font-weight:600; flex:0 0 auto}
 
 .list button{display:flex; width:100%; justify-content:space-between; align-items:center; gap:12px;
-  background:var(--panel); border:1px solid rgba(28,25,23,.06); border-radius:var(--r-lg);
+  background:var(--panel); border:1px solid var(--edge); border-radius:var(--r-lg);
   padding:15px 17px; margin-top:10px; color:var(--txt); cursor:pointer; text-align:left;
   box-shadow:var(--sh-1); transition:transform .12s var(--ease), box-shadow .22s var(--ease)}
 .list button:active{transform:scale(.99); box-shadow:none}
 .list .t{font-size:16px; font-weight:600; letter-spacing:-.015em}
 .list button .t{display:block; margin-bottom:3px}
 
-.banner{background:linear-gradient(180deg,#fff1f2,#ffe4e6); color:#9f1239; font-size:12px;
+.banner{background:var(--banner-bg); color:var(--banner-txt); font-size:12px;
   line-height:1.45; padding:10px 16px; border:none; width:100%; text-align:left; cursor:pointer}
 
 .msg{border-radius:var(--r-lg); padding:12px 15px; margin-top:10px; max-width:86%;
   font-size:15px; line-height:1.45}
-.msg.me{background:linear-gradient(180deg,#fbbf24,#f59e0b); color:#3d2808;
+.msg.me{background:linear-gradient(135deg,#fbbf24,#f97316); color:#fff;
   margin-left:auto; border-bottom-right-radius:6px;
   box-shadow:0 6px 16px -8px rgba(245,158,11,.6)}
-.msg.ol{background:var(--panel); border:1px solid rgba(28,25,23,.06);
+.msg.ol{background:var(--panel); border:1px solid var(--edge);
   border-bottom-left-radius:6px; box-shadow:var(--sh-1)}
 .corr{border-left:3px solid var(--red); background:var(--panel); font-size:12.5px; line-height:1.5;
   color:var(--dim); padding:9px 12px; border-radius:var(--r-sm); margin-top:10px; max-width:86%;
@@ -197,7 +260,7 @@ textarea{line-height:1.5}
   text-underline-offset:3px}
 .score{font-family:Georgia,serif; font-size:42px; letter-spacing:-.02em; color:var(--amber2); text-align:center}
 
-.overlay{position:fixed; inset:0; background:rgba(250,249,247,.94); z-index:20; display:none;
+.overlay{position:fixed; inset:0; background:var(--veil); z-index:20; display:none;
   -webkit-backdrop-filter:blur(22px); backdrop-filter:blur(22px);
   flex-direction:column; max-width:520px; margin:0 auto;
   padding:calc(env(safe-area-inset-top, 0px) + 16px) 16px calc(env(safe-area-inset-bottom, 0px) + 16px)}
@@ -225,6 +288,115 @@ label.small{display:block}
   font-family:ui-monospace,monospace; font-size:10px; color:var(--faint)}
 .leg span{display:flex; align-items:center; gap:5px}
 .leg em{width:9px; height:9px; border-radius:3px; display:block}
+.wordrow s, .why s{color:var(--dim); text-decoration-color:var(--red); text-decoration-thickness:1.5px}
+.card > .wordrow:first-child{border-top:none; padding-top:0}
+.dots{display:inline-flex; gap:3px; vertical-align:middle; margin-left:3px}
+.dots i{width:7px; height:7px; border-radius:50%; background:var(--line); display:block}
+.dots i.on{background:var(--green)}
+
+/* ===== Tagesziel, Serie, Medaillen ===== */
+.goal{display:block; width:100%; text-align:left; font-family:inherit; cursor:pointer;
+  background:var(--panel); border:1px solid var(--edge); border-radius:var(--r-md);
+  padding:11px 14px 12px; margin-bottom:12px; box-shadow:var(--sh-1)}
+.goal .gt{display:flex; justify-content:space-between; font-size:13px; font-weight:600;
+  color:var(--dim); margin-bottom:8px}
+.goal .gt b{color:var(--txt); font-weight:700}
+.gb{height:8px; background:var(--panel2); border-radius:9px; overflow:hidden}
+.gb i{display:block; height:100%; border-radius:9px; background:linear-gradient(90deg,#fbbf24,#f97316);
+  transition:width .5s var(--ease)}
+.goal.done .gb i{background:linear-gradient(90deg,#34d399,#059669)}
+
+.hero{position:relative; overflow:hidden; border-radius:var(--r-xl); padding:20px 20px 18px; color:#fff;
+  background:linear-gradient(140deg,#f59e0b 0%,#f97316 48%,#e11d48 100%);
+  box-shadow:0 20px 40px -20px rgba(225,29,72,.6)}
+.hero::before{content:""; position:absolute; right:-60px; top:-80px; width:220px; height:220px;
+  border-radius:50%; background:radial-gradient(circle,rgba(255,255,255,.28),rgba(255,255,255,0) 70%)}
+.hero.cold{background:linear-gradient(140deg,#a8a29e,#57534e); box-shadow:var(--sh-2)}
+.herotop{position:relative; display:flex; justify-content:space-between; align-items:center}
+.hero .big{font-size:56px; font-weight:800; letter-spacing:-.05em; line-height:1}
+.hero .lbl{font-size:13px; font-weight:600; opacity:.92; margin-top:4px}
+.hero .say{position:relative; font-size:13.5px; line-height:1.45; margin:12px 0 0; opacity:.95}
+.ring{position:relative; width:84px; height:84px}
+.ring svg{width:100%; height:100%; display:block}
+.ring div{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center;
+  justify-content:center; line-height:1.05}
+.ring b{font-size:20px; font-weight:800; letter-spacing:-.03em}
+.ring span{font-size:10px; font-weight:600; opacity:.85}
+.week{position:relative; display:flex; justify-content:space-between; margin-top:16px}
+.week div{display:flex; flex-direction:column; align-items:center; gap:5px; font-size:10.5px;
+  font-weight:600; opacity:.9}
+.week i{width:32px; height:32px; border-radius:50%; background:rgba(255,255,255,.2); font-style:normal;
+  display:flex; align-items:center; justify-content:center; font-size:15px}
+.week i.on{background:#fff}
+.week .now i{box-shadow:0 0 0 2px #fff}
+.week i.shield{background:rgba(255,255,255,.5)}
+.shieldtag{position:relative; display:inline-block; margin-top:10px; padding:6px 11px; border-radius:999px;
+  background:rgba(255,255,255,.2); font-size:12px; font-weight:600; line-height:1.35}
+.shieldtag.off{opacity:.8}
+
+.tiles{display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:12px}
+.tiles div{background:var(--panel); border:1px solid var(--edge); border-radius:var(--r-lg);
+  padding:12px 6px; text-align:center; box-shadow:var(--sh-1)}
+.tiles b{display:block; font-size:21px; font-weight:800; letter-spacing:-.03em}
+.tiles span{font-size:11px; color:var(--faint); font-weight:500}
+
+.next{display:flex; gap:14px; align-items:center}
+.next .medal{flex:0 0 auto; padding:0; border:none; box-shadow:none; background:none}
+.next .medal .disc{margin:0}
+.next .info{flex:1; min-width:0}
+.next .info b{display:block; font-size:15px; letter-spacing:-.01em}
+.next .info span{display:block; font-size:12.5px; color:var(--dim); margin:2px 0 8px}
+
+.mhead{display:flex; justify-content:space-between; align-items:baseline; margin:22px 2px 10px}
+.mhead h3{font-size:16px; font-weight:700; letter-spacing:-.02em; margin:0}
+.mhead span{font-size:12px; font-weight:600; color:var(--faint)}
+.mgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+.medal{background:var(--panel); border:1px solid var(--edge); border-radius:var(--r-lg);
+  padding:14px 6px 12px; text-align:center; box-shadow:var(--sh-1)}
+.medal .disc{width:58px; height:58px; margin:0 auto 9px; border-radius:50%; font-size:27px;
+  display:flex; align-items:center; justify-content:center}
+.medal.bronze .disc{background:radial-gradient(circle at 32% 26%,#ffe6c7,#e08a3c 58%,#9a4a12);
+  box-shadow:inset 0 0 0 3px rgba(255,255,255,.35), 0 8px 16px -8px rgba(154,74,18,.8)}
+.medal.silver .disc{background:radial-gradient(circle at 32% 26%,#ffffff,#cfd8e3 52%,#7b8794);
+  box-shadow:inset 0 0 0 3px rgba(255,255,255,.55), 0 8px 16px -8px rgba(71,85,105,.7)}
+.medal.gold .disc{background:radial-gradient(circle at 32% 26%,#fff8c9,#fbbf24 52%,#b45309);
+  box-shadow:inset 0 0 0 3px rgba(255,255,255,.45), 0 8px 18px -8px rgba(217,119,6,.9)}
+.medal.diamond .disc{background:radial-gradient(circle at 32% 26%,#f5f3ff,#a5b4fc 50%,#6d28d9);
+  box-shadow:inset 0 0 0 3px rgba(255,255,255,.5), 0 8px 18px -8px rgba(109,40,217,.8)}
+.medal.locked .disc{background:var(--panel2); box-shadow:inset 0 0 0 2px var(--line)}
+.medal.locked .disc span{filter:grayscale(1); opacity:.3}
+.medal .nm{font-size:12px; font-weight:700; letter-spacing:-.01em; line-height:1.2}
+.medal.locked .nm{color:var(--dim)}
+.medal .ds{font-size:10.5px; color:var(--faint); margin-top:3px; line-height:1.3}
+.medal .gb{height:4px; margin:8px 12px 0}
+
+/* Feier: Overlay mit Medaille und Konfetti. */
+.cele{position:fixed; inset:0; z-index:40; display:none; align-items:center; justify-content:center;
+  padding:24px; background:rgba(28,25,23,.5);
+  -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px)}
+.cele.show{display:flex}
+.cele .card2{position:relative; z-index:1; width:100%; max-width:340px; background:var(--panel);
+  border-radius:30px; padding:30px 22px 20px; text-align:center;
+  box-shadow:0 30px 70px -20px rgba(0,0,0,.5); animation:pop .5s var(--ease)}
+.cele .medal{border:none; box-shadow:none; background:none; padding:0}
+.cele .medal .disc{width:116px; height:116px; font-size:54px; margin-bottom:4px; animation:spin .9s var(--ease)}
+.cele .kick{font-size:11px; font-weight:800; letter-spacing:.14em; text-transform:uppercase;
+  color:#f97316; margin-bottom:16px}
+.cele h2{font-size:25px; font-weight:800; letter-spacing:-.035em; margin:14px 0 4px}
+.cele p{font-size:14px; line-height:1.45; color:var(--dim); margin:0}
+.confetti{position:absolute; inset:0; overflow:hidden; pointer-events:none}
+.confetti i{position:absolute; top:-16px; width:8px; height:13px; border-radius:2px;
+  animation:fall linear forwards}
+@keyframes pop{0%{transform:scale(.82); opacity:0}100%{transform:scale(1); opacity:1}}
+@keyframes spin{0%{transform:perspective(400px) rotateY(200deg) scale(.4); opacity:0}
+  100%{transform:perspective(400px) rotateY(0) scale(1); opacity:1}}
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+
+.toast{position:fixed; left:50%; z-index:45; top:calc(env(safe-area-inset-top, 0px) + 10px);
+  transform:translate(-50%,-160%); background:var(--toast-bg); color:var(--toast-txt); padding:11px 18px;
+  border-radius:999px; font-size:14px; font-weight:600; white-space:nowrap;
+  box-shadow:0 14px 30px -10px rgba(0,0,0,.5); transition:transform .45s var(--ease)}
+.toast.show{transform:translate(-50%,0)}
 
 :focus-visible{outline:2px solid var(--amber); outline-offset:2px}
 @media (prefers-reduced-motion:reduce){
@@ -235,21 +407,36 @@ label.small{display:block}
 <body>
 <div id="app">
   <header>
-    <div><h1>English Trainer</h1><div class="sub" id="subline"></div></div>
+    <div><h1>English <em>Trainer</em></h1><div class="sub" id="subline"></div></div>
     <div style="display:flex; gap:8px; align-items:center">
-      <button class="x" onclick="openBackup()" title="Sicherung">&#8681;</button>
-      <div class="pill">&#128293; <span id="streak">0</span></div>
+      <button class="x" onclick="openBackup()" title="Sicherung">&#9881;&#65039;</button>
+      <button class="pill" id="pill" onclick="go('medals')" title="Serie und Medaillen">&#128293; <span id="streak">0</span><span class="medn" id="medn"></span></button>
     </div>
   </header>
   <button class="banner" id="banner" style="display:none" onclick="openBackup()"></button>
   <main id="main"></main>
   <button class="tobottom" id="tobottom" onclick="scrollDown()" title="Nach unten">&#8595;</button>
   <nav>
-    <button data-tab="vocab" class="on" onclick="go('vocab')"><span class="ic">&#9634;</span>Karten</button>
-    <button data-tab="grammar" onclick="go('grammar')"><span class="ic">&#182;</span>Grammatik</button>
+    <button data-tab="vocab" class="on" onclick="go('vocab')"><span class="ic">&#127183;</span>Karten</button>
+    <button data-tab="grammar" onclick="go('grammar')"><span class="ic">&#9997;&#65039;</span>Grammatik</button>
     <button data-tab="speak" onclick="go('speak')"><span class="ic">&#127908;</span>Sprechen</button>
-    <button data-tab="chat" onclick="go('chat')"><span class="ic">&#9993;</span>Chat</button>
+    <button data-tab="chat" onclick="go('chat')"><span class="ic">&#128172;</span>Chat</button>
+    <button data-tab="medals" onclick="go('medals')"><span class="ic">&#127941;</span>Erfolge</button>
   </nav>
+</div>
+
+<div class="toast" id="toast"></div>
+<div class="cele" id="cele" onclick="if(event.target===this)closeCele()">
+  <div class="confetti" id="confetti"></div>
+  <div class="card2">
+    <div class="kick">Neue Medaille</div>
+    <div id="celeMedal"></div>
+    <h2 id="celeName"></h2>
+    <p id="celeDesc"></p>
+    <p class="why" id="celeMore"></p>
+    <button class="btn primary" onclick="closeCele()">Weiter</button>
+    <button class="btn ghost" onclick="closeCele();go('medals')">Alle Medaillen ansehen</button>
+  </div>
 </div>
 
 <div class="overlay" id="backup">
@@ -259,6 +446,12 @@ label.small{display:block}
   </div>
   <div class="body">
     <p class="mono" id="saveinfo" style="margin-top:10px"></p>
+    <p class="small">Darstellung:</p>
+    <select id="themebox" onchange="setTheme(this.value)">
+      <option value="">Automatisch (wie das iPhone)</option>
+      <option value="light">Immer hell</option>
+      <option value="dark">Immer dunkel</option>
+    </select>
     <p class="small">Kurzcode (kompatibel mit der Claude-Version):</p>
     <textarea id="exportbox" readonly rows="4" class="mono" onclick="this.select()"></textarea>
     <button class="btn ghost" onclick="copyExport()">In die Zwischenablage</button>
@@ -1642,12 +1835,29 @@ const SPEAK_SEED=[
  "I've been working on this project for three weeks."];
 
 /* ================= Zustand ================= */
-function blank(){return{cards:{},extra:[],chat:[],gram:{},hist:[],
-  stats:{streak:0,reviews:0,correct:0,lastDay:null}};}
+function blankStats(){return{streak:0,reviews:0,correct:0,lastDay:null,
+  best:0,today:0,goalDays:0,chats:0,spoken:0,fixed:0,days:[],medals:{},frz:null,frozen:[]};}
+function blank(){return{cards:{},extra:[],chat:[],gram:{},hist:[],errs:[],stats:blankStats()};}
 let S=blank();
 let storageOk=true, apiKey="", provider="gemini", gModel="";
 
-/* Ältere Sicherungen kennen gram/hist nicht — hier einmal auffüllen,
+/* Kalendertage in Ortszeit. Math.floor(Date.now()/DAY) wäre UTC und würde
+   in Deutschland den Tag um 1 bzw. 2 Uhr nachts wechseln. */
+function dayIdx(t){const d=t?new Date(t):new Date();return Math.floor((d.getTime()-d.getTimezoneOffset()*60000)/DAY);}
+function dayStr(back){const d=new Date();d.setDate(d.getDate()-(back||0));return d.toDateString();}
+/* 0 = heute geübt, 1 = gestern, 2 = vorgestern, 99 = länger her oder nie.
+   Die 2 braucht der Serienschutz: ein verpasster Tag dazwischen. */
+function lastAgo(){const l=S.stats.lastDay;
+  return l===dayStr(0)?0:(l===dayStr(1)?1:(l===dayStr(2)?2:99));}
+/* Serienschutz: ein verpasster Tag pro 7 Tage reißt die Serie nicht.
+   frz = Tagnummer des zuletzt geschützten Tages. */
+const SHIELD_GAP=7;
+function shieldFor(missed){const f=S.stats.frz;return f==null||missed-f>=SHIELD_GAP;}
+function shielded(){return lastAgo()===2&&(S.stats.streak||0)>0&&shieldFor(dayIdx()-1);}
+function liveStreak(){const a=lastAgo();return a<=1||shielded()?(S.stats.streak||0):0;}
+function todayPts(){return lastAgo()===0?(S.stats.today||0):0;}
+
+/* Ältere Sicherungen kennen gram/hist/Medaillen nicht — hier einmal auffüllen,
    damit sich der Rest des Codes auf die Felder verlassen kann. */
 function normalise(){
   if(!S.cards)S.cards={};
@@ -1655,7 +1865,106 @@ function normalise(){
   if(!Array.isArray(S.chat))S.chat=[];
   if(!S.gram||typeof S.gram!=="object")S.gram={};
   if(!Array.isArray(S.hist))S.hist=[];
-  if(!S.stats)S.stats={streak:0,reviews:0,correct:0,lastDay:null};
+  if(!Array.isArray(S.errs))S.errs=[];
+  const st=S.stats=Object.assign(blankStats(),S.stats||{});
+  if(!st.medals||typeof st.medals!=="object")st.medals={};
+  /* Eine laufende Serie von n Tagen heißt: die letzten n Tage wurde geübt.
+     Damit sind die Wochenpunkte auch für Bestandsnutzer sofort gefüllt. */
+  if(!Array.isArray(st.days)||!st.days.length){
+    st.days=[];
+    const ago=lastAgo();
+    if(ago<=1)for(let i=Math.min(st.streak||0,60)-1;i>=0;i--)st.days.push(dayIdx()-ago-i);
+  }
+  st.best=Math.max(st.best||0,st.streak||0);
+}
+
+/* ================= Tagesziel, Serie, Medaillen ================= */
+/* Punkte: Karte 1 · Grammatik-Runde je Aufgabe 1 · gesprochener Satz 2 · Chatnachricht 2. */
+const GOAL=20;
+function activity(n){
+  const st=S.stats, ago=lastAgo();
+  if(ago!==0){
+    const before=st.streak||0, d=dayIdx(), saved=shielded();
+    /* Der geschützte Tag zählt nicht mit, die Serie wächst nur um heute. */
+    st.streak=(ago===1||saved)?before+1:1;
+    if(saved){st.frz=d-1;st.frozen.push(d-1);if(st.frozen.length>20)st.frozen=st.frozen.slice(-20);}
+    st.lastDay=dayStr(0); st.today=0;
+    if(!st.days.includes(d))st.days.push(d);
+    if(st.days.length>60)st.days=st.days.slice(-60);
+    if(saved)toast("🛡️ Serienschutz hat gehalten: Tag "+st.streak);
+    else if(st.streak>1)toast("🔥 Tag "+st.streak+" in Folge!");
+    else if(before>1)toast("🔥 Neue Serie gestartet");
+  }
+  const was=st.today||0;
+  st.today=was+n;
+  if(was<GOAL&&st.today>=GOAL){st.goalDays++;toast("🎯 Tagesziel geschafft!");}
+  st.best=Math.max(st.best||0,st.streak);
+  checkMedals();
+}
+
+const TIERS=["bronze","silver","gold","diamond"];
+const MCATS=[["serie","Serie"],["ziel","Tagesziel"],["karten","Karten"],["wissen","Wortschatz"],
+  ["gram","Grammatik"],["fehler","Fehlerheft"],["reden","Sprechen & Chat"]];
+const mastered=()=>Object.values(S.cards).filter(c=>c.box>=5).length;
+const gramDone=()=>GRAMMAR.filter(t=>(S.gram[t.t]||{}).best>=80).length;
+const M=(cat,id,icon,name,tier,need,one,many,val,desc)=>({cat,id,icon,name,tier,need,one,many,val,desc});
+const MEDALS=[
+  M("serie","s3","🔥","Funke","bronze",3,"Tag","Tage",()=>S.stats.best,"3 Tage in Folge"),
+  M("serie","s7","⭐","Eine Woche","silver",7,"Tag","Tage",()=>S.stats.best,"7 Tage in Folge"),
+  M("serie","s14","⚡","Zwei Wochen","silver",14,"Tag","Tage",()=>S.stats.best,"14 Tage in Folge"),
+  M("serie","s30","🏆","Ein Monat","gold",30,"Tag","Tage",()=>S.stats.best,"30 Tage in Folge"),
+  M("serie","s60","🚀","Zwei Monate","gold",60,"Tag","Tage",()=>S.stats.best,"60 Tage in Folge"),
+  M("serie","s100","💎","Hundert Tage","diamond",100,"Tag","Tage",()=>S.stats.best,"100 Tage in Folge"),
+  M("serie","s365","👑","Ein ganzes Jahr","diamond",365,"Tag","Tage",()=>S.stats.best,"365 Tage in Folge"),
+  M("ziel","g1","🎯","Volltreffer","bronze",1,"Tagesziel","Tagesziele",()=>S.stats.goalDays,"Erstes Tagesziel"),
+  M("ziel","g7","🏹","Sieben Ziele","silver",7,"Tagesziel","Tagesziele",()=>S.stats.goalDays,"7 Tagesziele"),
+  M("ziel","g30","🎖️","Dreißig Ziele","gold",30,"Tagesziel","Tagesziele",()=>S.stats.goalDays,"30 Tagesziele"),
+  M("ziel","g100","🌈","Hundert Ziele","diamond",100,"Tagesziel","Tagesziele",()=>S.stats.goalDays,"100 Tagesziele"),
+  M("karten","r100","📚","Bücherwurm","bronze",100,"Karte","Karten",()=>S.stats.reviews,"100 Karten geübt"),
+  M("karten","r500","🗂️","Karteiprofi","silver",500,"Karte","Karten",()=>S.stats.reviews,"500 Karten geübt"),
+  M("karten","r2000","🏛️","Archivar","gold",2000,"Karte","Karten",()=>S.stats.reviews,"2000 Karten geübt"),
+  M("wissen","w10","🌱","Erste Ernte","bronze",10,"Wort","Wörter",mastered,"10 Wörter in Fach 5"),
+  M("wissen","w50","🌳","Gut verwurzelt","silver",50,"Wort","Wörter",mastered,"50 Wörter in Fach 5"),
+  M("wissen","w200","🧠","Wortschatz","gold",200,"Wort","Wörter",mastered,"200 Wörter in Fach 5"),
+  M("gram","gr1","✏️","Regelkunde","bronze",1,"Thema","Themen",gramDone,"1 Thema mit 80 %"),
+  M("gram","gr5","📐","Grammatikfan","silver",5,"Thema","Themen",gramDone,"5 Themen mit 80 %"),
+  M("gram","grA","🎓","Alles drin","gold",GRAMMAR.length,"Thema","Themen",gramDone,"Alle "+GRAMMAR.length+" Themen mit 80 %"),
+  M("fehler","f5","🩹","Ausgebügelt","bronze",5,"Fehler","Fehler",()=>S.stats.fixed,"5 Fehler ausgebügelt"),
+  M("fehler","f25","🔧","Fehlerjäger","silver",25,"Fehler","Fehler",()=>S.stats.fixed,"25 Fehler ausgebügelt"),
+  M("fehler","f100","🛡️","Fehlerfrei","gold",100,"Fehler","Fehler",()=>S.stats.fixed,"100 Fehler ausgebügelt"),
+  M("reden","c10","💬","Small Talk","bronze",10,"Nachricht","Nachrichten",()=>S.stats.chats,"10 Nachrichten an Oliver"),
+  M("reden","c100","☕","Brieffreund","silver",100,"Nachricht","Nachrichten",()=>S.stats.chats,"100 Nachrichten an Oliver"),
+  M("reden","p10","🎤","Erste Worte","bronze",10,"Satz","Sätze",()=>S.stats.spoken,"10 Sätze nachgesprochen"),
+  M("reden","p100","🎙️","Redner","silver",100,"Satz","Sätze",()=>S.stats.spoken,"100 Sätze nachgesprochen")
+];
+function checkMedals(){
+  const got=S.stats.medals, fresh=[];
+  MEDALS.forEach(m=>{if(!got[m.id]&&m.val()>=m.need){got[m.id]=dayIdx();fresh.push(m);}});
+  if(fresh.length){save();render();celebrate(fresh);}
+}
+function discHtml(m,locked){
+  return '<div class="medal '+m.tier+(locked?" locked":"")+'"><div class="disc"><span>'+m.icon+'</span></div></div>';
+}
+function celebrate(fresh){
+  const m=fresh.slice().sort((a,b)=>TIERS.indexOf(b.tier)-TIERS.indexOf(a.tier))[0];
+  $("celeMedal").innerHTML=discHtml(m,false);
+  $("celeName").textContent=m.name;
+  $("celeDesc").textContent=m.desc;
+  $("celeMore").textContent=fresh.length>1?"Und "+(fresh.length-1)+" weitere "+(fresh.length===2?"Medaille":"Medaillen")+" — alle unter Erfolge.":"";
+  const cols=["#fbbf24","#f97316","#e11d48","#10b981","#6366f1","#38bdf8"];
+  let c="";
+  for(let i=0;i<46;i++)c+='<i style="left:'+(Math.random()*100).toFixed(1)+'%;background:'+cols[i%cols.length]
+    +';animation-duration:'+(1.6+Math.random()*1.6).toFixed(2)+'s;animation-delay:'+(Math.random()*.5).toFixed(2)+'s"></i>';
+  $("confetti").innerHTML=c;
+  $("cele").classList.add("show");
+  try{if(navigator.vibrate)navigator.vibrate(40);}catch(e){}
+}
+function closeCele(){$("cele").classList.remove("show");$("confetti").innerHTML="";}
+let toastT=null;
+function toast(t){
+  const el=$("toast"); if(!el)return;
+  el.textContent=t; el.classList.add("show");
+  clearTimeout(toastT); toastT=setTimeout(()=>el.classList.remove("show"),2600);
 }
 
 function loadState(){
@@ -1687,14 +1996,24 @@ document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==
 /* Format bleibt v:1. g (Grammatik) und h (Verlauf) sind neu, aber optional —
    ältere Leser ignorieren unbekannte Schlüssel einfach. */
 function packState(){
-  const now=Date.now();
+  const now=Date.now(), st=S.stats, today=dayIdx();
   return JSON.stringify({v:1,
     c:Object.entries(S.cards).map(([en,k])=>[en,k.box,Math.round((k.due-now)/3600000)]),
     x:S.extra.map(w=>[w.en,w.de,w.level,w.src==="me"?1:0]),
-    s:[S.stats.streak,S.stats.reviews,S.stats.correct],
+    /* s[0..2] wie immer, ab s[3] neu: beste Serie, Tagesziele, Chat, Sprechen,
+       Tage seit letzter Übung, heutige Punkte. Ältere Leser ignorieren den Rest. */
+    s:[st.streak,st.reviews,st.correct,st.best,st.goalDays,st.chats,st.spoken,lastAgo(),todayPts(),st.fixed,
+      st.frz==null?-1:today-st.frz],
+    f:st.frozen.filter(x=>today-x<30).map(x=>today-x),
+    /* Fehlerheft: 0 = Grammatik (mit Themen-Index), 1 = Chat-Korrektur. */
+    e:S.errs.map(x=>x.k==="g"
+      ?[0,GRAMMAR.findIndex(t=>t.t===x.topic),x.q,x.a,x.w||"",x.n||1,x.ok||0]
+      :[1,x.q,x.a,x.w||"",x.n||1,x.ok||0]),
     g:Object.keys(S.gram).map(t=>{const i=GRAMMAR.findIndex(x=>x.t===t), g=S.gram[t];
       return i<0?null:[i,g.runs||0,g.best||0,g.lastScore||0,Math.round(((g.last||now)-now)/3600000)];}).filter(Boolean),
-    h:S.hist.slice(-45)});
+    h:S.hist.slice(-45),
+    m:Object.keys(st.medals).map(id=>[id,today-st.medals[id]]),
+    d:st.days.filter(x=>today-x<30).map(x=>today-x)});
 }
 function unpackState(t){
   const o=JSON.parse(t.trim());
@@ -1704,10 +2023,19 @@ function unpackState(t){
   (o.c||[]).forEach(([en,box,h])=>{cards[en]={box:box,due:now+h*3600000};});
   (o.g||[]).forEach(([i,runs,best,lastScore,hrs])=>{const topic=GRAMMAR[i];
     if(topic)gram[topic.t]={runs:runs||0,best:best||0,lastScore:lastScore||0,last:now+(hrs||0)*3600000};});
+  const s=o.s||[], today=dayIdx(), medals={};
+  (o.m||[]).forEach(([id,ago])=>{medals[id]=today-(ago||0);});
+  const ago=s.length>7?s[7]:99;
   return {cards:cards,
     extra:(o.x||[]).map(([en,de,lv,me])=>({en:en,de:de,level:lv,src:me?"me":"ai"})), chat:[],
     gram:gram, hist:Array.isArray(o.h)?o.h:[],
-    stats:{streak:(o.s&&o.s[0])||0,reviews:(o.s&&o.s[1])||0,correct:(o.s&&o.s[2])||0,lastDay:null}};
+    errs:(o.e||[]).map(r=>r[0]===0
+      ?{k:"g",topic:(GRAMMAR[r[1]]||{}).t||"",q:r[2],a:r[3],w:r[4],n:r[5]||1,ok:r[6]||0,t:Date.now()}
+      :{k:"c",q:r[1],a:r[2],w:r[3],n:r[4]||1,ok:r[5]||0,t:Date.now()}).filter(x=>x.q&&x.a),
+    stats:{streak:s[0]||0,reviews:s[1]||0,correct:s[2]||0,best:s[3]||0,goalDays:s[4]||0,
+      chats:s[5]||0,spoken:s[6]||0,fixed:s[9]||0,lastDay:ago<=2?dayStr(ago):null,today:ago===0?(s[8]||0):0,
+      frz:(s.length>10&&s[10]>=0)?today-s[10]:null,frozen:(o.f||[]).map(a=>today-a),
+      days:(o.d||[]).map(a=>today-a).sort((a,b)=>a-b),medals:medals}};
 }
 
 /* Ein Datenpunkt pro Tag: Fachverteilung des Karteikastens. */
@@ -1735,8 +2063,12 @@ function speak(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel()
 function allWords(){return WORDS.concat(S.extra);}
 function headline(){
   const learned=Object.values(S.cards).filter(c=>c.box>=3).length;
-  $("subline").textContent=learned+" SITZEN · "+allWords().length+" IM KASTEN";
-  $("streak").textContent=S.stats.streak;
+  $("subline").textContent=learned+" sitzen · "+allWords().length+" Wörter";
+  $("streak").textContent=liveStreak();
+  const n=Object.keys(S.stats.medals).length;
+  $("medn").textContent=n?"🏅 "+n:"";
+  $("medn").style.display=n?"":"none";
+  $("pill").classList.toggle("cold",lastAgo()!==0);
 }
 async function askClaude(messages,system,maxTokens){
   if(!apiKey) throw new Error("Kein API-Key hinterlegt (Sicherung → Key)");
@@ -1772,12 +2104,12 @@ async function askClaude(messages,system,maxTokens){
       const d=await res.json();
       const c=d.candidates&&d.candidates[0];
       const txt=((c&&c.content&&c.content.parts)||[]).map(p=>p.text||"").join("\n").trim();
-      if(txt) return txt;
-      /* Kein Text: den Grund benennen statt zu raten. Die alte Meldung
-         behauptete pauschal „Tageslimit erreicht“ und führte in die Irre. */
       const fr=(c&&c.finishReason)||"";
       const blockiert=d.promptFeedback&&d.promptFeedback.blockReason;
       const denk=(d.usageMetadata&&d.usageMetadata.thoughtsTokenCount)||0;
+      /* MAX_TOKENS mit Text: Antwort abgeschnitten — kaputtes JSON zurückgeben
+         wäre schlechter als ein Fehler, der die Chain weiterprobieren lässt. */
+      if(txt&&fr!=="MAX_TOKENS") return txt;
       let grund;
       if(blockiert)grund="Google hat die Anfrage blockiert ("+blockiert+").";
       else if(fr==="MAX_TOKENS")grund="Die Antwort passte nicht ins Token-Budget"+(denk?", "+denk+" Token gingen fürs interne Nachdenken drauf":"")+".";
@@ -1882,6 +2214,7 @@ function go(t){
   TAB=t;
   document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on",b.dataset.tab===t));
   C.confirmClear=false;                    // offene Rückfrage nicht über den Tabwechsel retten
+  C.show=CHAT_PAGE;                        // beim nächsten Öffnen wieder nur das Ende zeichnen
   const m=$("main"); if(m)m.scrollTop=0;   // sonst hängt man im neuen Tab mitten im Inhalt
   render();
 }
@@ -1911,6 +2244,7 @@ function syncForms(){
   if(e)V.nwEn=e.value; if(d)V.nwDe=d.value; if(l)V.nwLv=l.value;
   if(t)P.typed=t.value;
   if(c)C.draft=c.value;
+  const er=$("errin"); if(er)E.ans=er.value;
   if(!G.checked)G.items.forEach((it,i)=>{const g=$("g"+i); if(g)G.answers[i]=g.value;});
 }
 function render(){
@@ -1919,6 +2253,7 @@ function render(){
   if(TAB==="vocab")renderVocab();
   else if(TAB==="grammar")renderGrammar();
   else if(TAB==="speak")renderSpeak();
+  else if(TAB==="medals")renderMedals();
   else renderChat();
   checkScroll();
 }
@@ -1939,10 +2274,8 @@ function grade(known){
   const now=Date.now(), prev=S.cards[w.en]||{box:1};
   const box=known?Math.min(5,prev.box+1):1;
   S.cards[w.en]={box:box,due:now+INTERVALS[box]*DAY};
-  const today=new Date().toDateString(), yest=new Date(Date.now()-DAY).toDateString();
   S.stats.reviews++; if(known)S.stats.correct++;
-  S.stats.streak = S.stats.lastDay===today?S.stats.streak : (S.stats.lastDay===yest?S.stats.streak+1:1);
-  S.stats.lastDay=today;
+  activity(1);
   if(known){V.right++;V.idx++;}
   else{V.wrong++;const q=V.queue;const c=q.splice(V.idx,1)[0];q.splice(Math.min(q.length,V.idx+3),0,c);}
   V.flipped=false; snapshot(); save(); render();
@@ -2036,10 +2369,10 @@ function statsHtml(){
     });
     const dl=n=>new Date(n*DAY).toLocaleDateString("de-DE",{day:"2-digit",month:"2-digit"});
     h+='<svg viewBox="0 0 '+W+' '+HT+'" style="width:100%;height:auto;display:block">'+g
-      +'<line x1="'+pad+'" y1="'+bot+'" x2="'+(W-pad)+'" y2="'+bot+'" stroke="#dfdbd4" stroke-width="1"/>'
-      +'<text x="'+pad+'" y="'+(HT-4)+'" font-size="8" fill="#8b827a">'+dl(H[0][0])+'</text>'
-      +'<text x="'+(W-pad)+'" y="'+(HT-4)+'" font-size="8" fill="#8b827a" text-anchor="end">'+dl(H[H.length-1][0])+'</text>'
-      +'<text x="'+pad+'" y="'+(top-1)+'" font-size="8" fill="#8b827a">'+max+'</text></svg>';
+      +'<line x1="'+pad+'" y1="'+bot+'" x2="'+(W-pad)+'" y2="'+bot+'" style="stroke:var(--line)" stroke-width="1"/>'
+      +'<text x="'+pad+'" y="'+(HT-4)+'" font-size="8" style="fill:var(--faint)">'+dl(H[0][0])+'</text>'
+      +'<text x="'+(W-pad)+'" y="'+(HT-4)+'" font-size="8" style="fill:var(--faint)" text-anchor="end">'+dl(H[H.length-1][0])+'</text>'
+      +'<text x="'+pad+'" y="'+(top-1)+'" font-size="8" style="fill:var(--faint)">'+max+'</text></svg>';
     h+='<div class="leg">'+BOXC.map((c,i)=>'<span><em style="background:'+c+'"></em>Fach '+(i+1)+'</span>').join("")+'</div>';
   }
   h+='</div>';
@@ -2081,7 +2414,7 @@ function renderVocab(){
   const p=pool(), counts=[0,0,0,0,0];
   p.forEach(w=>{const k=S.cards[w.en];if(k)counts[Math.min(4,k.box-1)]++;});
   const unseen=p.filter(w=>!S.cards[w.en]).length;
-  let h=top+'<div class="chips">'+["Alle"].concat(LEVELS).map(l=>
+  let h=top+goalStrip()+'<div class="chips">'+["Alle"].concat(LEVELS).map(l=>
     '<button class="chip'+(V.level===l?" on":"")+'" onclick="V.level=\''+l+'\';buildRound();render()">'+l+'</button>').join("")+'</div>';
   h+='<div style="display:flex;justify-content:space-between;align-items:flex-end">';
   h+='<div class="rail"><div class="drawer new"><div class="box"></div><span class="n">'+unseen+'</span></div><div class="sep"></div>';
@@ -2114,6 +2447,98 @@ function renderVocab(){
   $("main").innerHTML=h;
 }
 
+/* ================= Erfolge ================= */
+function goalStrip(){
+  const t=todayPts(), done=t>=GOAL;
+  return '<button class="goal'+(done?" done":"")+'" onclick="go(\'medals\')"><div class="gt"><span>'
+    +(done?"🎯 Tagesziel geschafft":"Tagesziel heute")+'</span><b>'+t+' / '+GOAL+'</b></div>'
+    +'<div class="gb"><i style="width:'+Math.min(100,Math.round(t/GOAL*100))+'%"></i></div></button>';
+}
+function ringHtml(t){
+  const r=30, c=2*Math.PI*r, p=Math.min(1,t/GOAL);
+  return '<div class="ring"><svg viewBox="0 0 72 72">'
+    +'<circle cx="36" cy="36" r="'+r+'" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="7"/>'
+    +'<circle cx="36" cy="36" r="'+r+'" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"'
+    +' stroke-dasharray="'+c.toFixed(1)+'" stroke-dashoffset="'+(c*(1-p)).toFixed(1)+'" transform="rotate(-90 36 36)"/>'
+    +'</svg><div><b>'+t+'</b><span>von '+GOAL+'</span></div></div>';
+}
+function streakSay(){
+  const live=liveStreak(), ago=lastAgo(), t=todayPts(), best=S.stats.best||0;
+  if(!S.stats.lastDay&&!best)return "Starte heute deine Serie. Schon eine Karte zählt — mit "+GOAL+" Punkten ist das Tagesziel erreicht.";
+  if(ago===0&&t>=GOAL)return "Tagesziel geschafft. Komm morgen wieder, dann steht die Serie bei "+(live+1)+" Tagen.";
+  if(ago===0)return "Heute bist du dabei. Noch "+(GOAL-t)+" Punkte bis zum Tagesziel.";
+  if(ago===1)return "Heute noch nicht geübt. Eine einzige Karte rettet deine Serie von "+live+(live===1?" Tag.":" Tagen.");
+  if(shielded())return "Gestern ausgelassen. Der Serienschutz hält deine Serie von "+live+(live===1?" Tag":" Tagen")+" — aber nur, wenn du heute übst.";
+  return "Die Serie ist gerissen — kein Drama. Eine Karte heute, und es geht wieder los. Deine Bestmarke: "+best+(best===1?" Tag.":" Tage.");
+}
+/* Zeile unter dem Spruch: Ist der Schutz bereit, oder ab wann wieder? */
+function shieldHtml(){
+  if(!liveStreak()||shielded())return "";
+  const d=dayIdx(), next=lastAgo()===0?d+1:d;
+  if(shieldFor(next))return '<div class="shieldtag">🛡️ Serienschutz bereit · ein verpasster Tag pro Woche ist erlaubt</div>';
+  const n=S.stats.frz+SHIELD_GAP-next;
+  return '<div class="shieldtag off">🛡️ Serienschutz wieder bereit in '+n+(n===1?" Tag":" Tagen")+'</div>';
+}
+function weekHtml(){
+  const set=new Set(S.stats.days), frz=new Set(S.stats.frozen), today=dayIdx(), WD=["So","Mo","Di","Mi","Do","Fr","Sa"];
+  if(shielded())frz.add(today-1);
+  let h='<div class="week">';
+  for(let i=6;i>=0;i--){
+    const d=new Date(); d.setDate(d.getDate()-i);
+    const on=set.has(today-i), sh=!on&&frz.has(today-i);
+    h+='<div'+(i===0?' class="now"':'')+'><i class="'+(on?"on":(sh?"shield":""))+'">'+(on?"🔥":(sh?"🛡️":""))+'</i>'+WD[d.getDay()]+'</div>';
+  }
+  return h+'</div>';
+}
+/* Medaillen-Stände einmal pro Aufbau des Erfolge-Tabs berechnen. Einige
+   val()-Funktionen laufen über alle Karten, und jede Medaille wurde doppelt
+   gefragt (Kachel und „Als Nächstes"). */
+let MV=null;
+const mval=m=>MV&&m.id in MV?MV[m.id]:m.val();
+function medalCard(m){
+  const got=!!S.stats.medals[m.id], v=Math.min(mval(m),m.need);
+  let h='<div class="medal '+m.tier+(got?"":" locked")+'"><div class="disc"><span>'+m.icon+'</span></div>';
+  h+='<div class="nm">'+esc(m.name)+'</div><div class="ds">'+esc(m.desc)+'</div>';
+  if(!got)h+='<div class="gb"><i style="width:'+Math.round(v/m.need*100)+'%"></i></div>';
+  return h+'</div>';
+}
+/* Als Nächstes: die offene Medaille, der man am nächsten ist. */
+function nextMedal(){
+  let best=null, bp=-1;
+  MEDALS.forEach(m=>{if(S.stats.medals[m.id])return;
+    const p=Math.min(1,mval(m)/m.need); if(p>bp){bp=p;best=m;}});
+  return best;
+}
+function renderMedals(){
+  const ms=mastered(), gd=gramDone();
+  MV={};
+  MEDALS.forEach(m=>{MV[m.id]=m.cat==="wissen"?ms:(m.cat==="gram"?gd:m.val());});
+  const live=liveStreak(), t=todayPts(), got=Object.keys(S.stats.medals).length;
+  let h='<div class="hero'+(live?"":" cold")+'"><div class="herotop"><div>';
+  h+='<div class="big">🔥 '+live+'</div><div class="lbl">'+(live===1?"Tag":"Tage")+' in Folge</div></div>';
+  h+=ringHtml(t)+'</div><p class="say">'+esc(streakSay())+'</p>'+shieldHtml()+weekHtml()+'</div>';
+  h+='<div class="tiles"><div><b>'+(S.stats.best||0)+'</b><span>beste Serie</span></div>'
+    +'<div><b>'+(S.stats.goalDays||0)+'</b><span>Tagesziele</span></div>'
+    +'<div><b>'+got+'<small style="font-size:13px;color:var(--faint)"> / '+MEDALS.length+'</small></b><span>Medaillen</span></div></div>';
+  const n=nextMedal();
+  if(n){
+    const v=Math.min(mval(n),n.need), rest=n.need-v;
+    h+='<div class="card next">'+discHtml(n,true)+'<div class="info"><span style="margin:0 0 2px;font-weight:600;color:var(--faint);font-size:11px;text-transform:uppercase;letter-spacing:.08em">Als Nächstes</span>'
+      +'<b>'+esc(n.name)+'</b><span>noch '+rest+' '+(rest===1?n.one:n.many)+' · '+esc(n.desc)+'</span>'
+      +'<div class="gb"><i style="width:'+Math.round(v/n.need*100)+'%"></i></div></div></div>';
+  }
+  MCATS.forEach(([k,title])=>{
+    const list=MEDALS.filter(m=>m.cat===k), have=list.filter(m=>S.stats.medals[m.id]).length;
+    h+='<div class="mhead"><h3>'+title+'</h3><span>'+have+' / '+list.length+'</span></div>';
+    h+='<div class="mgrid">'+list.map(medalCard).join("")+'</div>';
+  });
+  h+='<div class="card"><h3>So zählen Punkte</h3><p class="why">Karte 1 · Grammatik je Aufgabe 1 · Fehler aus dem Heft 1 · nachgesprochener Satz 2 · Nachricht an Oliver 2. '
+    +'Für die Serie reicht ein Punkt am Tag, das Tagesziel liegt bei '+GOAL+'. '
+    +'Der Serienschutz fängt einen verpassten Tag pro Woche ab.</p></div>';
+  MV=null;
+  $("main").innerHTML=h;
+}
+
 /* ================= Grammatik ================= */
 let G={topic:null,items:[],rule:[],answers:{},checked:false,loading:false,err:""};
 function isRight(it,val){return String(it.a).split("/").some(a=>norm(a)===norm(val||""));}
@@ -2134,7 +2559,133 @@ function recordGram(){
   const pct=Math.round(hit/G.items.length*100);
   const g=S.gram[G.topic]||{runs:0,best:0,lastScore:0,last:0};
   g.runs++; g.best=Math.max(g.best||0,pct); g.lastScore=pct; g.last=Date.now();
-  S.gram[G.topic]=g; save();
+  S.gram[G.topic]=g;
+  G.items.forEach((it,i)=>{
+    if(isRight(it,G.answers[i]))hitErr("g",it.q);
+    else addErr({k:"g",topic:G.topic,q:it.q,a:it.a,w:it.w||"",given:String(G.answers[i]||"").trim()});
+  });
+  activity(G.items.length);
+  save();
+}
+
+/* ================= Fehlerheft ================= */
+/* Gesammelt werden falsche Grammatik-Antworten und Olivers Korrekturen.
+   Ein Fehler gilt als ausgebügelt, wenn er ERR_DONE-mal in Folge richtig kam.
+   Eine falsche Antwort setzt die Folge zurück. */
+const ERR_MAX=60, ERR_DONE=2;
+let E={on:false,list:false,queue:[],idx:0,ans:"",checked:false,right:false,hits:0,fixed:0};
+function addErr(e){
+  const ex=S.errs.find(x=>x.k===e.k&&x.q===e.q);
+  if(ex){ex.n=(ex.n||1)+1;ex.ok=0;ex.t=Date.now();if(e.given)ex.given=e.given;return;}
+  S.errs.push(Object.assign({n:1,ok:0,t:Date.now()},e));
+  if(S.errs.length>ERR_MAX)S.errs=S.errs.slice(-ERR_MAX);
+}
+function solveErr(e){
+  e.ok=(e.ok||0)+1;
+  if(e.ok>=ERR_DONE){S.errs=S.errs.filter(x=>x!==e);S.stats.fixed++;return true;}
+  return false;
+}
+/* Richtig beantwortet im normalen Grammatik-Üben zählt auch fürs Heft. */
+function hitErr(k,q){const e=S.errs.find(x=>x.k===k&&x.q===q); if(e)solveErr(e);}
+/* Oliver liefert "falsche Stelle → Korrektur (Grund)", bis zu zwei Stück. */
+function parseCorr(c){
+  return String(c||"").split(/\n|;\s+/).map(s=>{
+    const parts=s.split(/→|->/); if(parts.length<2)return null;
+    let a=parts.slice(1).join(" ").trim(), w="";
+    const m=a.match(/\(([^)]*)\)\s*\.?$/); if(m){w=m[1].trim();a=a.slice(0,m.index).trim();}
+    const strip=x=>x.trim().replace(/^["'„“”]+|["'“”]+$/g,"").trim();
+    const q=strip(parts[0]); a=strip(a);
+    return q&&a&&norm(q)!==norm(a)?{k:"c",q:q,a:a,w:w}:null;
+  }).filter(Boolean);
+}
+function startErrs(){
+  const pick=S.errs.slice().sort((x,y)=>(x.ok-y.ok)||(y.n-x.n)).slice(0,10);
+  E={on:true,list:true,queue:shuffle(pick),idx:0,ans:"",checked:false,right:false,hits:0,fixed:0};
+  clearField("errin");
+  render();
+}
+function checkErr(){
+  syncForms();
+  const e=E.queue[E.idx]; if(!e||E.checked)return;
+  E.checked=true;
+  E.right=String(e.a).split("/").some(a=>norm(a)===norm(E.ans||""));
+  if(E.right){E.hits++;if(solveErr(e))E.fixed++;}
+  else{e.ok=0;e.n=(e.n||1)+1;}
+  activity(1); save(); render();
+}
+/* Für Synonyme und Varianten, die der Textvergleich nicht kennt. */
+function overrideErr(){
+  const e=E.queue[E.idx]; if(!e||!E.checked||E.right)return;
+  E.right=true; E.hits++; e.n=Math.max(1,(e.n||1)-1);
+  if(solveErr(e))E.fixed++;
+  save(); render();
+}
+function nextErr(){E.idx++;E.ans="";E.checked=false;E.right=false;clearField("errin");render();}
+function delErr(i){S.errs.splice(i,1);save();render();}
+function errDots(e){
+  let h='<span class="dots">';
+  for(let i=0;i<ERR_DONE;i++)h+='<i class="'+(i<(e.ok||0)?"on":"")+'"></i>';
+  return h+'</span>';
+}
+function errsHtml(){
+  const q=E.queue;
+  if(E.on&&E.idx<q.length){
+    const e=q[E.idx];
+    let h='<p class="meta">FEHLER '+(E.idx+1)+' / '+q.length+' · '+(e.k==="g"?"Grammatik: "+esc(e.topic||""):"aus dem Chat")+'</p>';
+    h+='<div class="card">';
+    if(e.k==="g"){
+      h+='<div style="font-size:16px;line-height:1.45">'+esc(e.q)+'</div>';
+      if(e.given)h+='<p class="why">Damals geschrieben: <s>'+esc(e.given)+'</s></p>';
+    }else{
+      h+='<p class="why" style="margin:0 0 4px">Du hast geschrieben:</p>';
+      h+='<div class="target" style="font-size:20px"><s style="text-decoration-color:var(--red)">'+esc(e.q)+'</s></div>';
+      h+='<p class="why">Wie heißt es richtig?'+(e.w?' Tipp: '+esc(e.w):'')+'</p>';
+    }
+    h+='<input type="text" id="errin" value="'+esc(E.ans||"")+'" placeholder="'+(e.k==="g"?"Lücke füllen":"richtige Version")+'" lang="en" autocapitalize="none" autocorrect="off"'
+      +' class="'+(E.checked?(E.right?"ok":"no"):"")+'"'+(E.checked?" readonly":"")
+      +' onkeydown="if(event.key===\'Enter\'){'+(E.checked?'nextErr()':'checkErr()')+'}">';
+    if(E.checked){
+      if(E.right){
+        const gone=!S.errs.includes(e);
+        h+='<p class="why"><b>Richtig.</b> '+(gone?"Ausgebügelt, der Fehler verschwindet aus dem Heft.":"Noch "+(ERR_DONE-e.ok)+"× richtig, dann ist er ausgebügelt.")+'</p>';
+      }else{
+        h+='<p class="why"><b>'+esc(e.a)+'</b>'+(e.w&&e.k==="g"?' — '+esc(e.w):'')+'</p>';
+        h+='<button class="linkbtn" style="color:var(--dim)" onclick="overrideErr()">Meine Antwort war auch richtig</button>';
+      }
+    }
+    h+='</div>';
+    h+=E.checked?'<button class="btn primary" onclick="nextErr()">Weiter</button>'
+                :'<button class="btn primary" onclick="checkErr()">Prüfen</button>';
+    h+='<button class="btn ghost" onclick="E.on=false;render()">Abbrechen</button>';
+    return h;
+  }
+  if(E.on){
+    let h='<div class="card center"><h3>Runde fertig</h3>';
+    h+='<p class="why">'+E.hits+' von '+q.length+' richtig'+(E.fixed?' · <b>'+E.fixed+' ausgebügelt</b>':'')+'</p>';
+    if(S.errs.length)h+='<button class="btn primary" onclick="startErrs()">Nächste Runde</button>';
+    h+='<button class="btn ghost" onclick="E.on=false;render()">Zur Liste</button></div>';
+    return h;
+  }
+  const n=S.errs.length;
+  let h='<div class="card"><h3>Fehlerheft</h3>';
+  if(!n){
+    h+='<p class="why">Gerade leer. Falsche Grammatik-Antworten und Olivers Korrekturen aus dem Chat landen automatisch hier.'
+      +(S.stats.fixed?' Bisher ausgebügelt: <b>'+S.stats.fixed+'</b>.':'')+'</p></div>';
+    return h;
+  }
+  h+='<p class="why">'+n+' offen'+(S.stats.fixed?' · '+S.stats.fixed+' ausgebügelt':'')+'. Ein Fehler verschwindet, wenn du ihn '+ERR_DONE+'× hintereinander richtig hast.</p>';
+  h+='<button class="btn primary" onclick="startErrs()">'+Math.min(10,n)+' Fehler üben</button></div>';
+  h+='<div class="card">';
+  S.errs.slice().reverse().forEach(e=>{
+    const i=S.errs.indexOf(e);
+    const txt=e.k==="g"
+      ?(e.q.includes("___")?esc(e.q).replace("___","<b>"+esc(e.a)+"</b>"):esc(e.q)+" → <b>"+esc(e.a)+"</b>")
+      :"<s>"+esc(e.q)+"</s> → <b>"+esc(e.a)+"</b>";
+    h+='<div class="wordrow"><span style="min-width:0">'+txt
+      +'<br><i class="mono">'+(e.k==="g"?esc(e.topic||"Grammatik"):"Chat")+(e.n>1?" · "+e.n+"× falsch":"")+'</i> '+errDots(e)+'</span>'
+      +'<button class="x" style="width:30px;height:30px;font-size:13px;flex:0 0 auto" onclick="delErr('+i+')">&#10005;</button></div>';
+  });
+  return h+'</div>';
 }
 async function aiSet(){
   G.loading=true;G.err="";render();
@@ -2151,8 +2702,12 @@ async function aiSet(){
 function renderGrammar(){
   let h="";
   if(!G.topic){
+    const n=S.errs.length;
+    h='<div class="seg"><button class="'+(E.on||E.list?"":"on")+'" onclick="E.on=false;E.list=false;render()">Themen</button>'
+      +'<button class="'+(E.on||E.list?"on":"")+'" onclick="E.list=true;render()">Fehlerheft'+(n?' · '+n:'')+'</button></div>';
+    if(E.on||E.list){$("main").innerHTML=h+errsHtml();return;}
     const done=GRAMMAR.filter(t=>(S.gram[t.t]||{}).best>=80).length;
-    h='<div class="card"><div class="kv"><span>Themen mit 80 % oder mehr</span><b>'+done+' / '+GRAMMAR.length+'</b></div>';
+    h+='<div class="card" style="margin-top:0"><div class="kv"><span>Themen mit 80 % oder mehr</span><b>'+done+' / '+GRAMMAR.length+'</b></div>';
     h+='<div class="bar"><i style="width:'+Math.round(done/GRAMMAR.length*100)+'%;background:var(--amber)"></i></div></div>';
     h+='<p class="meta">THEMA WÄHLEN</p><div class="list">';
     GRAMMAR.forEach((t,i)=>{
@@ -2213,7 +2768,14 @@ function record(cb,rerender){
 }
 
 /* ================= Sprechen ================= */
-let P={bank:SPEAK_SEED,i:0,said:"",typed:"",loading:false};
+let P={bank:SPEAK_SEED,i:0,said:"",typed:"",loading:false,counted:-1};
+/* Punkte nur einmal pro Satz, sonst ließe sich das Tagesziel per
+   „Vergleichen“-Dauertippen erreichen. */
+function spoke(t){
+  P.said=t;
+  if(String(t||"").trim()&&P.counted!==P.i){P.counted=P.i;S.stats.spoken++;activity(2);save();}
+  render();
+}
 function alignWords(target,said){
   const t=norm(target).split(" ").filter(Boolean), s=norm(said).split(" ").filter(Boolean);
   const dp=Array.from({length:t.length+1},()=>new Array(s.length+1).fill(0));
@@ -2229,7 +2791,7 @@ async function moreSentences(){
     const txt=await askClaude([{role:"user",content:"8 neue Sätze, Alltag und Büro gemischt."}],
       'NUR JSON-Array aus 8 englischen Sätzen (je 8–14 Wörter, britisch, B1): ["…"]');
     const arr=parseJSON(txt).filter(s=>typeof s==="string");
-    if(arr.length){P.bank=arr;P.i=0;P.said="";P.typed="";}
+    if(arr.length){P.bank=arr;P.i=0;P.said="";P.typed="";P.counted=-1;}
   }catch(e){}
   P.loading=false;render();
 }
@@ -2244,19 +2806,21 @@ function renderSpeak(){
   if(r)h+='<div class="card center"><div class="score">'+r.score+'%</div><p class="why">Verstanden: „'+esc(P.said)+'“</p></div>';
   if(SR){
     if(navigator.standalone)h+='<p class="why">Hinweis: Als Home-Bildschirm-App blockiert iOS die Web-Spracherkennung oft. Tut der Knopf nichts, nimm das Tastatur-Diktat darunter.</p>';
-    h+='<button class="btn '+(recActive?"bad":"primary")+'" onclick="P.said=\'\';record(t=>{P.said=t;render()},true)">'+(recActive?"&#127908; Höre zu … tippen zum Stoppen":"&#127908; Aufnehmen und nachsprechen")+'</button>';
+    h+='<button class="btn '+(recActive?"bad":"primary")+'" onclick="P.said=\'\';record(spoke,true)">'+(recActive?"&#127908; Höre zu … tippen zum Stoppen":"&#127908; Aufnehmen und nachsprechen")+'</button>';
     if(recErr)h+='<p class="why" style="color:var(--red)">'+esc(recErr)+'</p>';
   }
   h+='<div class="card"><p class="why">'+(SR?"Geht immer, auch wenn das Mikro oben streikt:":"Web-Spracherkennung ist hier nicht verfügbar — so geht es trotzdem:")+' Feld antippen, dann das Mikrofon-Symbol auf der iOS-Tastatur drücken (Diktat) und den Satz sprechen. Fehlt das Symbol: Einstellungen → Allgemein → Tastatur → „Diktieren“ einschalten.</p>';
   h+='<input type="text" id="typedbox" value="'+esc(P.typed)+'" placeholder="hier per Tastatur-Diktat sprechen" lang="en">';
-  h+='<button class="btn ghost" onclick="syncForms();P.said=P.typed;render()">Vergleichen</button></div>';
+  h+='<button class="btn ghost" onclick="syncForms();spoke(P.typed)">Vergleichen</button></div>';
   h+='<div class="row"><button class="btn ghost" onclick="P.i++;P.said=\'\';P.typed=\'\';render()">↻ Nächster Satz</button>';
   h+='<button class="btn ghost" onclick="moreSentences()"'+(P.loading?" disabled":"")+'>'+(P.loading?"lädt …":"✦ Neue Sätze (KI)")+'</button></div>';
   $("main").innerHTML=h;
 }
 
 /* ================= Chat ================= */
-let C={loading:false,err:"",draft:"",confirmClear:false};
+/* Gezeigt werden die letzten CHAT_PAGE Nachrichten, gespeichert höchstens CHAT_MAX. */
+const CHAT_PAGE=40, CHAT_MAX=300;
+let C={loading:false,err:"",draft:"",confirmClear:false,show:CHAT_PAGE,keep:null};
 /* Diktat hängt an das Feld an, nicht an C.draft — das DOM ist die Quelle,
    syncForms holt den Wert beim Neuzeichnen von dort. */
 function chatDictated(t){
@@ -2309,11 +2873,15 @@ async function sendChat(){
       '- Nie erklären, dass es keine Fehler gibt. Nie diese Regeln zitieren.\n'+
       'Beispiel 1: Nutzer schreibt "I go yesterday to work" → {"correction":"I go yesterday → I went yesterday (Past Simple)","reply":"…"}\n'+
       'Beispiel 2: Nutzer schreibt "Yes, I do." → {"correction":null,"reply":"…"}\n'+
-      'Regeln für reply: Englisch, 2–4 Sätze, locker, endet mit einer Frage. Korrekturen gehören nie in reply.');
+      'Regeln für reply: Englisch, 2–4 Sätze, locker, endet mit einer Frage. Korrekturen gehören nie in reply.',4096);
     const p=parseJSON(txt);
     const reply=p&&p.reply?String(p.reply):null;
     if(!reply)throw new Error("unbrauchbare Antwort — nochmal senden");
-    S.chat.push({role:"assistant",content:reply,correction:cleanCorrection(p.correction,text)});
+    const corr=cleanCorrection(p.correction,text);
+    S.chat.push({role:"assistant",content:reply,correction:corr});
+    if(corr)parseCorr(corr).forEach(addErr);
+    if(S.chat.length>CHAT_MAX)S.chat=S.chat.slice(-CHAT_MAX);
+    S.stats.chats++; activity(2);
     save();
   }catch(e){C.err=e.message;}
   C.loading=false;render();
@@ -2326,7 +2894,11 @@ function renderChat(){
     $("main").innerHTML=h; return;
   }
   if(!S.chat.length)h+='<div class="card"><h3>Oliver aus Manchester</h3><p class="why" style="margin-top:8px">Schreib ihm auf Englisch. Er korrigiert kurz und redet dann normal weiter.</p></div>';
-  S.chat.forEach(m=>{
+  /* Nur das Ende zeichnen: bei Hunderten Nachrichten kostete jedes
+     Neuzeichnen sonst spürbar Zeit, auch wenn niemand nach oben scrollt. */
+  const start=Math.max(0,S.chat.length-C.show);
+  if(start)h+='<button class="btn ghost" style="margin:0 0 6px" onclick="olderChat()">Ältere Nachrichten anzeigen ('+start+')</button>';
+  S.chat.slice(start).forEach(m=>{
     if(m.role==="user")h+='<div class="msg me">'+esc(m.content)+'</div>';
     else{
       if(m.correction)h+='<div class="corr">'+esc(m.correction)+'</div>';
@@ -2354,12 +2926,36 @@ function renderChat(){
   h+='<input type="text" id="chatin" value="'+esc(C.draft||"")+'" placeholder="Write in English …" style="margin:0" onkeydown="if(event.key===\'Enter\')sendChat()">';
   h+='<button class="x" style="width:46px;height:46px;background:var(--amber);color:#1c1917" onclick="sendChat()">➤</button></div>';
   $("main").innerHTML=h;
-  /* Im Chat interessiert immer das Ende, nicht der Anfang. */
-  const m=$("main"); m.scrollTop=m.scrollHeight;
+  /* Im Chat interessiert immer das Ende, nicht der Anfang. Ausnahme: nach
+     „Ältere anzeigen" bleibt die Stelle stehen, an der man gerade liest. */
+  const m=$("main");
+  if(C.keep!=null){m.scrollTop=m.scrollHeight-C.keep;C.keep=null;}
+  else m.scrollTop=m.scrollHeight;
+}
+function olderChat(){
+  const m=$("main"); C.keep=m.scrollHeight-m.scrollTop;
+  C.show+=CHAT_PAGE; render();
 }
 
 /* ================= Sicherung ================= */
-function openBackup(){$("exportbox").value=packState();$("keybox").value=apiKey;$("provbox").value=provider;provChanged();$("backup").classList.add("show");}
+function openBackup(){$("exportbox").value=packState();$("keybox").value=apiKey;$("provbox").value=provider;provChanged();
+  $("themebox").value=document.documentElement.getAttribute("data-theme")||"";$("backup").classList.add("show");}
+
+/* ================= Darstellung ================= */
+const darkMQ=window.matchMedia?matchMedia("(prefers-color-scheme: dark)"):null;
+function setTheme(t){
+  if(t)document.documentElement.setAttribute("data-theme",t);
+  else document.documentElement.removeAttribute("data-theme");
+  try{if(t)localStorage.setItem(KEY+":theme",t);else localStorage.removeItem(KEY+":theme");}catch(e){}
+  syncThemeColor();
+}
+/* Farbe der iOS-Statusleiste an die tatsächliche Darstellung anpassen. */
+function syncThemeColor(){
+  const t=document.documentElement.getAttribute("data-theme");
+  const dark=t==="dark"||(!t&&darkMQ&&darkMQ.matches);
+  $("themecolor").setAttribute("content",dark?"#14110f":"#f7f5f1");
+}
+if(darkMQ){try{darkMQ.addEventListener("change",syncThemeColor);}catch(e){darkMQ.addListener(syncThemeColor);}}
 function closeBackup(){$("backup").classList.remove("show");}
 function copyExport(){
   const t=packState();
@@ -2374,7 +2970,7 @@ function doImport(){
     if(!next)throw new Error("leer");
     S=Object.assign(blank(),next);
     normalise();snapshot();
-    save();$("importbox").value="";closeBackup();buildRound();render();
+    save();$("importbox").value="";closeBackup();buildRound();render();checkMedals();
   }catch(e){$("notice").textContent="Code war unvollständig — bitte komplett einfügen.";}
 }
 function provChanged(){
@@ -2399,7 +2995,9 @@ async function saveKey(){
 }
 
 /* ================= Start ================= */
-loadState();snapshot();buildRound();render();
+loadState();snapshot();buildRound();syncThemeColor();render();
+/* Bestandsnutzer bekommen beim ersten Start alles, was sie schon verdient haben. */
+checkMedals();
 $("main").addEventListener("scroll",checkScroll,{passive:true});
 window.addEventListener("resize",checkScroll);
 if(storageOk)$("saveinfo").textContent="Automatisches Speichern aktiv";
