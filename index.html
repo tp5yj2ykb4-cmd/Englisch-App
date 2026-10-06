@@ -69,7 +69,10 @@ try{var th=localStorage.getItem("et-standalone-v1:theme");if(th)document.documen
   --toast-bg:#f5f0ea; --toast-txt:#1c1917; --raise:#3a332e;
   color-scheme:dark;
 }
-*{box-sizing:border-box; -webkit-tap-highlight-color:transparent}
+/* touch-action:manipulation schaltet den Doppeltipp-Zoom von Safari ab (schnelles
+   Tippen auf Antworten zoomte sonst hinein), Zwei-Finger-Zoom bleibt erlaubt.
+   Auf allen Elementen, weil es nicht vererbt wird und main ein eigener Scrollbereich ist. */
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent; touch-action:manipulation}
 html,body{margin:0; height:100%; background:var(--bg); color:var(--txt);
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   -webkit-font-smoothing:antialiased; font-variant-numeric:tabular-nums}
