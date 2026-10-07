@@ -2085,7 +2085,10 @@ function keyProblem(k){
   return "Der gespeicherte Key enthält an Stelle "+(i+1)+" das Zeichen „"+cs[i]+"“ ("+code+"), das in keinem Key vorkommt. "
     +"Meist macht die iPhone-Tastatur aus zwei Bindestrichen einen Gedankenstrich. Key am besten in AI Studio kopieren und unter ⚙️ einfügen.";
 }
-async function askClaude(messages,system,maxTokens){
+/* asJson: Gemini antwortet im JSON-Modus (responseMimeType). Ohne ihn kam
+   gelegentlich JSON mit rohen Zeilenumbrüchen oder unmaskierten Anführungszeichen
+   zurück, und der Chat meldete „Antwort unvollständig“. Nur der Key-Test will Text. */
+async function askClaude(messages,system,maxTokens,asJson=true){
   if(!apiKey) throw new Error("Kein API-Key hinterlegt (Sicherung → Key)");
   const kp=keyProblem(apiKey); if(kp) throw new Error(kp);
   if(provider==="gemini"){
@@ -2099,9 +2102,9 @@ async function askClaude(messages,system,maxTokens){
     const body=(mitDenken)=>JSON.stringify({
       system_instruction:{parts:[{text:system}]},
       contents:messages.map(m=>({role:m.role==="assistant"?"model":"user",parts:[{text:m.content}]})),
-      generationConfig:mitDenken
-        ?{maxOutputTokens:want}
-        :{maxOutputTokens:want,thinkingConfig:{thinkingBudget:0}}
+      generationConfig:Object.assign({maxOutputTokens:want},
+        asJson?{responseMimeType:"application/json"}:{},
+        mitDenken?{}:{thinkingConfig:{thinkingBudget:0}})
     });
     const call=async(model,mitDenken)=>{
       /* Einmal wiederholen fängt kurze Aussetzer ab, etwa wenn iOS die App
@@ -2212,8 +2215,25 @@ async function askClaude(messages,system,maxTokens){
   const d=await res.json();
   return d.content.filter(c=>c.type==="text").map(c=>c.text).join("\n");
 }
+/* Rohe Zeilenumbrüche und Tabs innerhalb von Zeichenketten sind in JSON
+   verboten, Modelle schreiben sie trotzdem. Hier werden sie maskiert. */
+function fixJSON(s){
+  let o="",inS=false,esc=false;
+  for(const ch of s){
+    if(inS){
+      if(esc){esc=false;o+=ch;continue;}
+      if(ch==="\\"){esc=true;o+=ch;continue;}
+      if(ch==='"'){inS=false;o+=ch;continue;}
+      if(ch==="\n"){o+="\\n";continue;}
+      if(ch==="\r")continue;
+      if(ch==="\t"){o+="\\t";continue;}
+      o+=ch;
+    }else{if(ch==='"')inS=true;o+=ch;}
+  }
+  return o;
+}
 function parseJSON(text){
-  const c=text.replace(/```json/gi,"").replace(/```/g,"").trim();
+  const c=fixJSON(text.replace(/```json/gi,"").replace(/```/g,"").trim());
   const st=[c.indexOf("{"),c.indexOf("[")].filter(i=>i>=0);
   if(!st.length) throw new Error("kein JSON");
   const b=c.slice(Math.min(...st));
@@ -2870,6 +2890,21 @@ function cleanCorrection(c,userMsg){
   if(lw.length&&!lw.some(w=>un.includes(" "+w+" ")))return null;
   return t;
 }
+/* Oliver soll {"correction":…,"reply":…} liefern. Geht das Auswerten schief
+   (z. B. unmaskierte Anführungszeichen im Text), lieber die Antwort retten als
+   eine Fehlermeldung zeigen. Erst wenn gar nichts geht, kommt ein Fehler mit
+   dem Antwortanfang, damit man sieht, was wirklich ankam. */
+function chatParse(txt){
+  try{const p=parseJSON(txt),o=Array.isArray(p)?p[0]:p;
+    if(o&&o.reply)return {reply:String(o.reply),correction:o.correction};}catch(e){}
+  const grab=k=>{const m=txt.match(new RegExp('"'+k+'"\\s*:\\s*"([\\s\\S]*?)"\\s*(,\\s*"|\\}\\s*$)'));
+    return m?m[1].replace(/\\n/g,"\n").replace(/\\"/g,'"').trim():null;};
+  const r=grab("reply");
+  if(r)return {reply:r,correction:grab("correction")};
+  const plain=txt.replace(/```[a-z]*|```/gi,"").trim();
+  if(plain&&!/^[\[{]/.test(plain))return {reply:plain,correction:null};
+  throw new Error("Oliver hat in einem unerwarteten Format geantwortet. Bitte nochmal senden. (Anfang: "+plain.slice(0,80)+")");
+}
 async function sendChat(){
   syncForms();
   const text=String(C.draft||"").trim();
@@ -2896,8 +2931,8 @@ async function sendChat(){
       'Beispiel 1: Nutzer schreibt "I go yesterday to work" → {"correction":"I go yesterday → I went yesterday (Past Simple)","reply":"…"}\n'+
       'Beispiel 2: Nutzer schreibt "Yes, I do." → {"correction":null,"reply":"…"}\n'+
       'Regeln für reply: Englisch, 2–4 Sätze, locker, endet mit einer Frage. Korrekturen gehören nie in reply.',4096);
-    const p=parseJSON(txt);
-    const reply=p&&p.reply?String(p.reply):null;
+    const p=chatParse(txt);
+    const reply=p.reply;
     if(!reply)throw new Error("unbrauchbare Antwort — nochmal senden");
     const corr=cleanCorrection(p.correction,text);
     S.chat.push({role:"assistant",content:reply,correction:corr});
@@ -3015,7 +3050,7 @@ async function saveKey(){
   if(!apiKey){$("notice").textContent="Key entfernt.";return;}
   $("notice").textContent="Key gespeichert — teste …";
   try{
-    await askClaude([{role:"user",content:"OK?"}],"Antworte nur mit OK.",10);
+    await askClaude([{role:"user",content:"OK?"}],"Antworte nur mit OK.",10,false);
     $("notice").textContent="✓ Key funktioniert"+(provider==="gemini"&&gModel?" (Modell: "+gModel+")":"")+" — Chat, KI-Grammatik und neue Wörter sind frei.";
   }catch(e){$("notice").textContent="Key gespeichert, aber Test fehlgeschlagen: "+e.message;}
 }
