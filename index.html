@@ -2058,7 +2058,10 @@ function ago(ts){
 
 /* ================= Helfer ================= */
 const $=id=>document.getElementById(id);
-const norm=s=>s.toLowerCase().replace(/[^a-z0-9äöüß' ]/g,"").replace(/\s+/g," ").trim();
+/* Apostroph-Varianten vereinheitlichen, bevor Sonderzeichen fliegen: Die deutsche
+   Tastatur liefert ´, iOS macht aus ' automatisch ’. Sonst galt "doesn´t" als falsch. */
+const norm=s=>s.toLowerCase().replace(/[’‘´`ʼ′]/g,"'")
+  .replace(/[^a-z0-9äöüß' ]/g,"").replace(/\s+/g," ").trim();
 function shuffle(a){const r=[...a];for(let i=r.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[r[i],r[j]]=[r[j],r[i]];}return r;}
 function esc(s){return String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
 function speak(t){try{if(!window.speechSynthesis)return;speechSynthesis.cancel();
@@ -2586,10 +2589,20 @@ function renderMedals(){
 /* ================= Grammatik ================= */
 let G={topic:null,items:[],rule:[],answers:{},checked:false,loading:false,err:""};
 function isRight(it,val){return String(it.a).split("/").some(a=>norm(a)===norm(val||""));}
+/* Antwortfelder g0, g1 … im DOM leeren, bevor eine neue Runde gezeichnet wird.
+   Sonst holt syncForms() die alten Antworten aus den Feldern in die neue Runde
+   (dieselbe Falle wie beim Chat-Feld, siehe CLAUDE.md). */
+function leereGFelder(){document.querySelectorAll("#main input").forEach(f=>{if(/^g\d+$/.test(f.id))f.value="";});}
+/* Nochmal mischen: dieselben Sätze der aktuellen Runde in neuer Reihenfolge,
+   also auch die zuletzt per KI geladenen, nicht wieder die eingebauten. */
+function mischen(){
+  G.items=shuffle(G.items);G.answers={};G.checked=false;G.err="";
+  leereGFelder();render();$("main").scrollTop=0;
+}
 function openTopic(i){
   const t=GRAMMAR[i];
   G={topic:t.t,rule:t.r,items:shuffle(t.i).slice(0,6),answers:{},checked:false,loading:false,err:""};
-  render();
+  leereGFelder();render();$("main").scrollTop=0;
 }
 function checkG(){
   syncForms();
@@ -2740,8 +2753,10 @@ async function aiSet(){
     const items=(Array.isArray(raw)?raw:raw.items||[]).filter(x=>x&&x.q&&x.a);
     if(!items.length)throw new Error("keine Aufgaben erhalten");
     G.items=items;G.answers={};G.checked=false;
+    leereGFelder();
   }catch(e){G.err=e.message;}
   G.loading=false;render();
+  if(!G.err)$("main").scrollTop=0;   // neue Sätze von oben beginnen
 }
 function renderGrammar(){
   let h="";
@@ -2777,7 +2792,7 @@ function renderGrammar(){
     if(G.checked){
       const score=G.items.filter((it,i)=>isRight(it,G.answers[i])).length;
       h+='<div class="card center"><div class="score">'+score+' / '+G.items.length+'</div>';
-      h+='<button class="btn primary" onclick="openTopic('+GRAMMAR.findIndex(t=>t.t===G.topic)+')">Nochmal mischen</button>';
+      h+='<button class="btn primary" onclick="mischen()">Nochmal mischen</button>';
       h+='<button class="btn ghost" onclick="aiSet()"'+(G.loading?" disabled":"")+'>'+(G.loading?"lädt …":"✦ Neue Sätze (KI)")+'</button>';
       if(G.err)h+='<p class="why" style="color:var(--red)">'+esc(G.err)+'</p>';
       h+='</div>';
