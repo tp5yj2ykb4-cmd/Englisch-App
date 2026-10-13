@@ -293,6 +293,13 @@ label.small{display:block}
 .leg em{width:9px; height:9px; border-radius:3px; display:block}
 .wordrow s, .why s{color:var(--dim); text-decoration-color:var(--red); text-decoration-thickness:1.5px}
 .card > .wordrow:first-child{border-top:none; padding-top:0}
+/* Lückensätze: ein schmales Feld je Lücke, mitten im Text */
+.satz{font-size:16px; line-height:2.3; color:var(--txt)}
+input[type=text].luecke{display:inline-block; vertical-align:baseline; margin:0 3px; padding:4px 8px;
+  min-width:6ch; max-width:100%; border-radius:10px; background:var(--soft); border:1px solid var(--line);
+  font-size:16px; line-height:1.3}
+input[type=text].luecke.ok{border-color:var(--green)}
+input[type=text].luecke.no{border-color:var(--red)}
 .dots{display:inline-flex; gap:3px; vertical-align:middle; margin-left:3px}
 .dots i{width:7px; height:7px; border-radius:50%; background:var(--line); display:block}
 .dots i.on{background:var(--green)}
@@ -2291,8 +2298,9 @@ function syncForms(){
   if(e)V.nwEn=e.value; if(d)V.nwDe=d.value; if(l)V.nwLv=l.value;
   if(t)P.typed=t.value;
   if(c)C.draft=c.value;
-  const er=$("errin"); if(er)E.ans=er.value;
-  if(!G.checked)G.items.forEach((it,i)=>{const g=$("g"+i); if(g)G.answers[i]=g.value;});
+  const eq=E.on&&E.queue&&E.queue[E.idx];
+  if(eq&&$("errin_0"))E.ans=lueckenWerte("errin",eq.k==="g"?eq:{q:""});
+  if(!G.checked)G.items.forEach((it,i)=>{if($("g"+i+"_0"))G.answers[i]=lueckenWerte("g"+i,it);});
 }
 function render(){
   syncForms();
@@ -2588,11 +2596,71 @@ function renderMedals(){
 
 /* ================= Grammatik ================= */
 let G={topic:null,items:[],rule:[],answers:{},checked:false,loading:false,err:""};
-function isRight(it,val){return String(it.a).split("/").some(a=>norm(a)===norm(val||""));}
+/* ===== Lücken ===== */
+/* Jede Lücke (___) im Satz bekommt ein eigenes Feld. Mögliche Lösungsformate:
+   - a als Liste: je Lücke ein Eintrag, Alternativen darin mit "/" (KI-Format seit 2026-10-13)
+   - a als Text bei einer Lücke: Alternativen mit "/" (alle eingebauten Aufgaben)
+   - a als Text bei mehreren Lücken (älteres KI-Format, z. B. "Do ... speak / Do/speak"):
+     jede "/"-Alternative wird an "...", "…" oder "|" bzw. an Leerzeichen in Lücken zerlegt.
+   Vorher gab es ein einziges Feld, und wer bei zwei Lücken das Trennzeichen vergaß,
+   bekam immer "falsch". */
+const LUECKE=/_{2,}/;
+const luecken=q=>Math.max(1,String(q).split(LUECKE).length-1);
+function loesungen(it){
+  const n=luecken(it.q);
+  if(Array.isArray(it.a))return {jeLuecke:it.a.map(x=>String(x).split("/").map(s=>s.trim()).filter(Boolean))};
+  const s=String(it.a);
+  if(n===1)return {jeLuecke:[s.split("/").map(x=>x.trim()).filter(Boolean)]};
+  const folgen=[];
+  (s.includes("/")?s.split("/"):[s]).forEach(c=>{
+    c=c.trim(); if(!c)return;
+    const teile=c.split(/\s*(?:\.{2,}|…|\|)\s*/).map(x=>x.trim()).filter(Boolean);
+    if(teile.length===n)folgen.push(teile);
+    else{const w=c.split(/\s+/); if(w.length===n)folgen.push(w);}
+  });
+  return {folgen};
+}
+function isRight(it,val){
+  const v=(Array.isArray(val)?val:[val]).map(x=>String(x||""));
+  const L=loesungen(it), zus=norm(v.join(" "));
+  if(L.jeLuecke){
+    if(L.jeLuecke.length===v.length)return L.jeLuecke.every((alts,k)=>alts.some(a=>norm(a)===norm(v[k])));
+    // Satz und Lösung haben verschieden viele Lücken: zusammengesetzt vergleichen
+    return norm(L.jeLuecke.map(a=>a[0]).join(" "))===zus||(L.jeLuecke.length===1&&L.jeLuecke[0].some(a=>norm(a)===zus));
+  }
+  return L.folgen.some(f=>f.length===v.length?f.every((a,k)=>norm(a)===norm(v[k])):norm(f.join(" "))===zus);
+}
+/* Lösung zum Anzeigen; bei einer Liste je Lücke durch " … " getrennt. */
+const loesungText=it=>Array.isArray(it.a)?it.a.map(String).join(" … "):String(it.a);
+/* Satz mit eingesetzten Lösungen, fett (für die Fehlerheft-Liste). */
+function satzMitLoesung(it){
+  const teile=String(it.q).split(LUECKE);
+  if(teile.length<2)return esc(it.q)+" → <b>"+esc(loesungText(it))+"</b>";
+  const L=loesungen(it), f=L.jeLuecke?L.jeLuecke.map(a=>a[0]):(L.folgen[0]||[loesungText(it)]);
+  return teile.map((t,k)=>esc(t)+(k<teile.length-1?"<b>"+esc(f[k]!=null?f[k]:"…")+"</b>":"")).join("");
+}
+/* Satz mit einem Eingabefeld je Lücke (ids prefix_0, prefix_1 …). Ohne Lücke steht
+   das Feld hinter dem Satz. Die Breite richtet sich grob nach der Lösung. */
+function lueckenHtml(it,prefix,werte,zustand,gesperrt){
+  const teile=String(it.q).split(LUECKE), n=luecken(it.q), L=loesungen(it);
+  const w=Array.isArray(werte)?werte:(werte?[werte]:[]);
+  const breite=k=>{const alts=L.jeLuecke?(L.jeLuecke[k]||[]):L.folgen.map(f=>f[k]||"");
+    return Math.min(16,Math.max(6,...alts.map(a=>a.length))+2);};
+  // Das Feld wächst mit der Eingabe, sonst wären längere Antworten nach dem Prüfen abgeschnitten
+  const feld=k=>'<input type="text" class="luecke '+zustand+'" id="'+prefix+'_'+k+'" value="'+esc(w[k]||"")+'"'
+    +' style="width:'+Math.min(24,Math.max(breite(k),String(w[k]||"").length+2))+'ch"'
+    +' oninput="this.style.width=Math.min(24,Math.max('+breite(k)+',this.value.length+2))+\'ch\'"'
+    +' lang="en" autocapitalize="none" autocorrect="off" spellcheck="false" autocomplete="off" aria-label="Lücke '+(k+1)+'"'+(gesperrt?" readonly":"")+'>';
+  if(teile.length<2)return '<div class="satz">'+esc(it.q)+' '+feld(0)+'</div>';
+  return '<div class="satz">'+teile.map((t,k)=>esc(t)+(k<n?feld(k):"")).join("")+'</div>';
+}
+/* Werte aller Lückenfelder mit diesem Präfix, in Reihenfolge. */
+function lueckenWerte(prefix,it){const v=[];for(let k=0;k<luecken(it.q);k++){const f=$(prefix+"_"+k);v.push(f?f.value:"");}return v;}
 /* Antwortfelder g0, g1 … im DOM leeren, bevor eine neue Runde gezeichnet wird.
    Sonst holt syncForms() die alten Antworten aus den Feldern in die neue Runde
    (dieselbe Falle wie beim Chat-Feld, siehe CLAUDE.md). */
-function leereGFelder(){document.querySelectorAll("#main input").forEach(f=>{if(/^g\d+$/.test(f.id))f.value="";});}
+function leereFelder(re){document.querySelectorAll("#main input").forEach(f=>{if(re.test(f.id))f.value="";});}
+function leereGFelder(){leereFelder(/^g\d+_\d+$/);}
 /* Nochmal mischen: dieselben Sätze der aktuellen Runde in neuer Reihenfolge,
    also auch die zuletzt per KI geladenen, nicht wieder die eingebauten. */
 function mischen(){
@@ -2619,7 +2687,7 @@ function recordGram(){
   S.gram[G.topic]=g;
   G.items.forEach((it,i)=>{
     if(isRight(it,G.answers[i]))hitErr("g",it.q);
-    else addErr({k:"g",topic:G.topic,q:it.q,a:it.a,w:it.w||"",given:String(G.answers[i]||"").trim()});
+    else addErr({k:"g",topic:G.topic,q:it.q,a:it.a,w:it.w||"",given:[].concat(G.answers[i]||"").map(x=>String(x).trim()).filter(Boolean).join(" … ")});
   });
   activity(G.items.length);
   save();
@@ -2657,15 +2725,15 @@ function parseCorr(c){
 }
 function startErrs(){
   const pick=S.errs.slice().sort((x,y)=>(x.ok-y.ok)||(y.n-x.n)).slice(0,10);
-  E={on:true,list:true,queue:shuffle(pick),idx:0,ans:"",checked:false,right:false,hits:0,fixed:0};
-  clearField("errin");
+  E={on:true,list:true,queue:shuffle(pick),idx:0,ans:[],checked:false,right:false,hits:0,fixed:0};
+  leereFelder(/^errin_\d+$/);
   render();
 }
 function checkErr(){
   syncForms();
   const e=E.queue[E.idx]; if(!e||E.checked)return;
   E.checked=true;
-  E.right=String(e.a).split("/").some(a=>norm(a)===norm(E.ans||""));
+  E.right=isRight(e.k==="g"?e:{q:"",a:e.a},E.ans);
   if(E.right){E.hits++;if(solveErr(e))E.fixed++;}
   else{e.ok=0;e.n=(e.n||1)+1;}
   activity(1); save(); render();
@@ -2677,7 +2745,7 @@ function overrideErr(){
   if(solveErr(e))E.fixed++;
   save(); render();
 }
-function nextErr(){E.idx++;E.ans="";E.checked=false;E.right=false;clearField("errin");render();}
+function nextErr(){E.idx++;E.ans=[];E.checked=false;E.right=false;leereFelder(/^errin_\d+$/);render();}
 function delErr(i){S.errs.splice(i,1);save();render();}
 function errDots(e){
   let h='<span class="dots">';
@@ -2690,23 +2758,25 @@ function errsHtml(){
     const e=q[E.idx];
     let h='<p class="meta">FEHLER '+(E.idx+1)+' / '+q.length+' · '+(e.k==="g"?"Grammatik: "+esc(e.topic||""):"aus dem Chat")+'</p>';
     h+='<div class="card">';
+    const zust=E.checked?(E.right?"ok":"no"):"";
     if(e.k==="g"){
-      h+='<div style="font-size:16px;line-height:1.45">'+esc(e.q)+'</div>';
+      // Grammatik: Felder direkt in den Lücken, wie im Grammatik-Tab
+      h+=lueckenHtml(e,"errin",E.ans,zust,E.checked);
       if(e.given)h+='<p class="why">Damals geschrieben: <s>'+esc(e.given)+'</s></p>';
     }else{
       h+='<p class="why" style="margin:0 0 4px">Du hast geschrieben:</p>';
       h+='<div class="target" style="font-size:20px"><s style="text-decoration-color:var(--red)">'+esc(e.q)+'</s></div>';
       h+='<p class="why">Wie heißt es richtig?'+(e.w?' Tipp: '+esc(e.w):'')+'</p>';
+      h+='<input type="text" id="errin_0" value="'+esc((E.ans||[])[0]||"")+'" placeholder="richtige Version" lang="en" autocapitalize="none" autocorrect="off"'
+        +' class="'+zust+'"'+(E.checked?" readonly":"")
+        +' onkeydown="if(event.key===\'Enter\'){'+(E.checked?'nextErr()':'checkErr()')+'}">';
     }
-    h+='<input type="text" id="errin" value="'+esc(E.ans||"")+'" placeholder="'+(e.k==="g"?"Lücke füllen":"richtige Version")+'" lang="en" autocapitalize="none" autocorrect="off"'
-      +' class="'+(E.checked?(E.right?"ok":"no"):"")+'"'+(E.checked?" readonly":"")
-      +' onkeydown="if(event.key===\'Enter\'){'+(E.checked?'nextErr()':'checkErr()')+'}">';
     if(E.checked){
       if(E.right){
         const gone=!S.errs.includes(e);
         h+='<p class="why"><b>Richtig.</b> '+(gone?"Ausgebügelt, der Fehler verschwindet aus dem Heft.":"Noch "+(ERR_DONE-e.ok)+"× richtig, dann ist er ausgebügelt.")+'</p>';
       }else{
-        h+='<p class="why"><b>'+esc(e.a)+'</b>'+(e.w&&e.k==="g"?' — '+esc(e.w):'')+'</p>';
+        h+='<p class="why"><b>'+esc(loesungText(e))+'</b>'+(e.w&&e.k==="g"?' — '+esc(e.w):'')+'</p>';
         h+='<button class="linkbtn" style="color:var(--dim)" onclick="overrideErr()">Meine Antwort war auch richtig</button>';
       }
     }
@@ -2735,9 +2805,7 @@ function errsHtml(){
   h+='<div class="card">';
   S.errs.slice().reverse().forEach(e=>{
     const i=S.errs.indexOf(e);
-    const txt=e.k==="g"
-      ?(e.q.includes("___")?esc(e.q).replace("___","<b>"+esc(e.a)+"</b>"):esc(e.q)+" → <b>"+esc(e.a)+"</b>")
-      :"<s>"+esc(e.q)+"</s> → <b>"+esc(e.a)+"</b>";
+    const txt=e.k==="g"?satzMitLoesung(e):"<s>"+esc(e.q)+"</s> → <b>"+esc(e.a)+"</b>";
     h+='<div class="wordrow"><span style="min-width:0">'+txt
       +'<br><i class="mono">'+(e.k==="g"?esc(e.topic||"Grammatik"):"Chat")+(e.n>1?" · "+e.n+"× falsch":"")+'</i> '+errDots(e)+'</span>'
       +'<button class="x" style="width:30px;height:30px;font-size:13px;flex:0 0 auto" onclick="delErr('+i+')">&#10005;</button></div>';
@@ -2748,7 +2816,10 @@ async function aiSet(){
   G.loading=true;G.err="";render();
   try{
     const txt=await askClaude([{role:"user",content:"Thema: "+G.topic}],
-      'Englischlehrer für deutschsprachigen Lerner (B1). NUR JSON: {"items":[{"q":"Satz mit ___ (Hinweis)","a":"Lösung","w":"Erklärung deutsch, max 8 Wörter"}]} — genau 5 items. Mehrere Lösungen mit / trennen.');
+      'Englischlehrer für deutschsprachigen Lerner (B1). NUR JSON: {"items":[{"q":"Satz mit ___ (Hinweis)","a":["Lösung"],"w":"Erklärung deutsch, max 8 Wörter"}]} — genau 5 items.\n'+
+      'Jede Lücke ist genau ___ (drei Unterstriche). "a" ist immer eine Liste mit genau einem Eintrag pro Lücke, in derselben Reihenfolge.\n'+
+      'Beispiel mit zwei Lücken: {"q":"___ you ___ (speak) English?","a":["Do","speak"],"w":"Frage mit do"}\n'+
+      'Gibt es für eine Lücke mehrere richtige Antworten, trenne sie innerhalb des Eintrags mit /, z. B. ["doesn\'t like/does not like"].');
     const raw=parseJSON(txt);
     const items=(Array.isArray(raw)?raw:raw.items||[]).filter(x=>x&&x.q&&x.a);
     if(!items.length)throw new Error("keine Aufgaben erhalten");
@@ -2784,9 +2855,8 @@ function renderGrammar(){
     h+='<div class="rules">'+G.rule.map((r,i)=>'<div><span>'+(i+1)+'</span>'+esc(r)+'</div>').join("")+'</div>';
     G.items.forEach((it,i)=>{
       const ok=G.checked&&isRight(it,G.answers[i]);
-      h+='<div class="card"><div style="font-size:15px">'+esc(it.q)+'</div>';
-      h+='<input type="text" id="g'+i+'" value="'+esc(G.answers[i]||"")+'" placeholder="deine Antwort" class="'+(G.checked?(ok?"ok":"no"):"")+'"'+(G.checked?" readonly":"")+'>';
-      if(G.checked&&!ok)h+='<p class="why"><b>'+esc(it.a)+'</b> — '+esc(it.w)+'</p>';
+      h+='<div class="card">'+lueckenHtml(it,"g"+i,G.answers[i],G.checked?(ok?"ok":"no"):"",G.checked);
+      if(G.checked&&!ok)h+='<p class="why"><b>'+esc(loesungText(it))+'</b> — '+esc(it.w)+'</p>';
       h+='</div>';
     });
     if(G.checked){
