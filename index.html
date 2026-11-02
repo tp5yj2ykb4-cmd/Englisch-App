@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; media-src blob: data:; connect-src https://api.anthropic.com https://generativelanguage.googleapis.com; base-uri 'none'; form-action 'none'">
 <meta name="theme-color" id="themecolor" content="#f7f5f1">
 <script>
 /* Gewählte Darstellung vor dem ersten Zeichnen setzen, sonst blitzt die App
@@ -2064,6 +2065,38 @@ function unpackState(t){
       days:(o.d||[]).map(a=>today-a).sort((a,b)=>a-b),medals:medals}};
 }
 
+/* Ein eingefügter Code kann von außen kommen. Deshalb nur bekannte Felder mit dem
+   richtigen Typ übernehmen: Zahlen als Zahlen, Texte als Texte. Sonst könnte ein
+   präparierter Code HTML in die Anzeige schmuggeln oder die App lahmlegen. */
+function saeubern(o){
+  const num=x=>typeof x==="number"&&isFinite(x)?x:0;
+  const txt=x=>typeof x==="string"?x:"";
+  const nums=a=>Array.isArray(a)?a.filter(x=>typeof x==="number"&&isFinite(x)):[];
+  const obj=x=>x&&typeof x==="object"&&!Array.isArray(x)?x:{};
+  const r=blank();
+  Object.entries(obj(o.cards)).forEach(([en,k])=>{
+    if(k&&typeof k==="object")r.cards[en]={box:Math.min(5,Math.max(1,Math.round(num(k.box))||1)),due:num(k.due)};});
+  r.extra=(Array.isArray(o.extra)?o.extra:[]).filter(w=>w&&txt(w.en)&&txt(w.de))
+    .map(w=>({en:w.en,de:w.de,level:txt(w.level),src:w.src==="me"?"me":"ai"}));
+  r.chat=(Array.isArray(o.chat)?o.chat:[]).filter(m=>m&&(m.role==="user"||m.role==="assistant")&&txt(m.content))
+    .map(m=>{const x={role:m.role,content:m.content};if(txt(m.correction))x.correction=m.correction;return x;});
+  Object.entries(obj(o.gram)).forEach(([t,g])=>{
+    if(GRAMMAR.some(x=>x.t===t)&&g&&typeof g==="object")
+      r.gram[t]={runs:num(g.runs),best:num(g.best),lastScore:num(g.lastScore),last:num(g.last)};});
+  r.hist=(Array.isArray(o.hist)?o.hist:[]).filter(h=>Array.isArray(h)&&h.length===6&&h.every(x=>typeof x==="number"&&isFinite(x)));
+  const loes=a=>typeof a==="string"?a:Array.isArray(a)?a.filter(x=>typeof x==="string"):"";
+  r.errs=(Array.isArray(o.errs)?o.errs:[]).filter(e=>e&&(e.k==="g"||e.k==="c")&&txt(e.q)&&loes(e.a).length)
+    .map(e=>{const x={k:e.k,q:e.q,a:loes(e.a),w:txt(e.w),n:num(e.n)||1,ok:num(e.ok),t:num(e.t)};
+      if(e.k==="g")x.topic=txt(e.topic); if(txt(e.given))x.given=e.given; return x;});
+  const st=obj(o.stats), s=r.stats;
+  ["streak","reviews","correct","best","today","goalDays","chats","spoken","fixed"].forEach(k=>{s[k]=num(st[k]);});
+  s.lastDay=typeof st.lastDay==="string"?st.lastDay.slice(0,40):null;
+  s.days=nums(st.days); s.frozen=nums(st.frozen);
+  s.frz=typeof st.frz==="number"&&isFinite(st.frz)?st.frz:null;
+  Object.entries(obj(st.medals)).forEach(([id,d])=>{if(MEDALS.some(m=>m.id===id))s.medals[id]=num(d);});
+  return r;
+}
+
 /* Ein Datenpunkt pro Tag: Fachverteilung des Karteikastens. */
 function snapshot(){
   const d=Math.floor(Date.now()/DAY), b=[0,0,0,0,0];
@@ -2469,7 +2502,7 @@ function wordsHtml(){
       h+='<div class="wordrow"><span><b>'+esc(w.en)+'</b> — '+esc(w.de)
        +' <i class="mono">'+esc(w.level||"")+(w.src==="me"?" · eigen":"")+'</i></span>'
        +'<button class="x" style="width:30px;height:30px;font-size:13px;flex:0 0 auto" onclick="delWord('
-       +JSON.stringify(w.en).replace(/"/g,"&quot;")+')">&#10005;</button></div>';
+       +esc(JSON.stringify(w.en))+')">&#10005;</button></div>';
     });
     if(S.extra.length>80)h+='<p class="why">Gezeigt werden die 80 neuesten.</p>';
   }
@@ -2508,8 +2541,8 @@ function renderVocab(){
     h+='<p class="meta">Karte '+(V.idx+1)+' / '+V.queue.length+(k?" · Fach "+k.box:" · neu")+'</p>';
     const front=V.reverse?w.de:w.en, back=V.reverse?w.en:w.de;
     h+='<div class="flip'+(V.flipped?" turned":"")+'" onclick="V.flipped=!V.flipped;render()"><div class="inner">';
-    h+='<div class="face"><div class="word">'+esc(front)+'</div>'+(!V.reverse?'<button class="spk" onclick="event.stopPropagation();speak(\''+w.en.replace(/'/g,"\\'")+'\')">&#128264;</button>':"")+'<span class="hint">tippen zum Umdrehen</span></div>';
-    h+='<div class="face back"><div class="word">'+esc(back)+'</div>'+(V.reverse?'<button class="spk" onclick="event.stopPropagation();speak(\''+w.en.replace(/'/g,"\\'")+'\')">&#128264;</button>':"")+'</div>';
+    h+='<div class="face"><div class="word">'+esc(front)+'</div>'+(!V.reverse?'<button class="spk" onclick="event.stopPropagation();speak('+esc(JSON.stringify(w.en))+')">&#128264;</button>':"")+'<span class="hint">tippen zum Umdrehen</span></div>';
+    h+='<div class="face back"><div class="word">'+esc(back)+'</div>'+(V.reverse?'<button class="spk" onclick="event.stopPropagation();speak('+esc(JSON.stringify(w.en))+')">&#128264;</button>':"")+'</div>';
     h+='</div></div>';
     h+=V.flipped
       ?'<div class="row"><button class="btn bad" onclick="grade(false)">✕ Nochmal</button><button class="btn good" onclick="grade(true)">✓ Gewusst</button></div>'
@@ -3047,7 +3080,7 @@ function renderSpeak(){
   h+='<div class="card"><div class="target">';
   h+=r?r.words.map((w,k)=>'<span class="'+(r.m.has(k)?"hit":"miss")+'">'+esc(w)+' </span>').join("")
       :esc(target);
-  h+='</div><button class="btn ghost" style="width:auto;padding:10px 16px" onclick="speak('+JSON.stringify(target).replace(/"/g,"&quot;")+')">&#9654; Vorsprechen lassen</button></div>';
+  h+='</div><button class="btn ghost" style="width:auto;padding:10px 16px" onclick="speak('+esc(JSON.stringify(target))+')">&#9654; Vorsprechen lassen</button></div>';
   if(r)h+='<div class="card center"><div class="score">'+r.score+'%</div><p class="why">Verstanden: „'+esc(P.said)+'“</p></div>';
   if(SR){
     if(navigator.standalone)h+='<p class="why">Hinweis: Als Home-Bildschirm-App blockiert iOS die Web-Spracherkennung oft. Tut der Knopf nichts, nimm das Tastatur-Diktat darunter.</p>';
@@ -3162,7 +3195,7 @@ function renderChat(){
     if(m.role==="user")h+='<div class="msg me">'+esc(m.content)+'</div>';
     else{
       if(m.correction)h+='<div class="corr">'+esc(m.correction)+'</div>';
-      h+='<div class="msg ol">'+esc(m.content)+' <button class="spk" style="width:30px;height:30px;font-size:14px;margin:0;vertical-align:middle" onclick="speak('+JSON.stringify(m.content).replace(/"/g,"&quot;")+')">&#128264;</button></div>';
+      h+='<div class="msg ol">'+esc(m.content)+' <button class="spk" style="width:30px;height:30px;font-size:14px;margin:0;vertical-align:middle" onclick="speak('+esc(JSON.stringify(m.content))+')">&#128264;</button></div>';
     }
   });
   if(C.loading)h+='<p class="mono">Oliver tippt …</p>';
@@ -3228,7 +3261,7 @@ function doImport(){
   try{
     const next=unpackState($("importbox").value);
     if(!next)throw new Error("leer");
-    S=Object.assign(blank(),next);
+    S=saeubern(next);
     normalise();snapshot();
     save();$("importbox").value="";closeBackup();buildRound();render();checkMedals();
   }catch(e){$("notice").textContent="Code war unvollständig — bitte komplett einfügen.";}
